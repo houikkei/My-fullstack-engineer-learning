@@ -1,0 +1,24 @@
+ <ul>
+          <li>前端开发</li>
+          <li>后端开发</li>
+          <li>移动开发</li>
+          <li>人工智能</li>
+          <li>商业预测</li>
+          <li>云计算&大数据</li>
+          <li>运维&测试</li>
+          <li>UI设计</li>
+          <li>产品</li>
+        </ul>
+
+
+<ul>
+      <li>HTML</li>
+      <li>CSS</li>
+      <li>javascript</li>
+      <li>Node.js</li>
+      <li>Ajax</li>
+      <li>Vue2.0</li>
+      <li>Vue3.0</li>
+      <li>TypeScript</li>
+      <li>React</li>
+    </ul>
