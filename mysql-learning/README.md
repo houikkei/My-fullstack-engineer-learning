@@ -1,4 +1,4 @@
-# SQL-learning
+# SQL-learning——2020 year version
 主要是更新自己学习sql的语法笔记和SQL面试50题知识点
 
 50题目参考链接： https://blog.csdn.net/fashion2014/article/details/78826299
