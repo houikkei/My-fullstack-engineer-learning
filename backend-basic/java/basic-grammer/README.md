@@ -1,2 +1,2 @@
-# java project
+# java learning
 
