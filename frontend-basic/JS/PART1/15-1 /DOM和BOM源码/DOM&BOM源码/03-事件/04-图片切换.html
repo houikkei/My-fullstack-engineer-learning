@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .box {
+            width: 500px;
+            margin: 30px auto;
+        }
+        img {
+            width: 500px;
+        }
+        .box>div {
+            display: flex;
+            justify-content: space-between;
+        }
+        button {
+            width: 80px;
+            height: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <img id="pic" src="../images/1.jpg" alt="">
+        <div>
+            <button class="prev">上一张</button>
+            <button class="next">下一张</button>
+        </div>
+    </div>
+
+    <script>
+        var imgs = ["../images/1.jpg", "../images/2.jpg", "../images/3.jpg", "../images/4.jpg", "../images/5.jpg"];
+
+        // 获取img标签对象
+        var imgDom = document.querySelector('#pic');
+        // console.dir(imgDom);
+
+        // 获取按钮对象
+        var prev = document.querySelector('.prev');
+        var next = document.querySelector('.next');
+
+        var i = 0;
+        next.onclick = function () {
+            i++;
+            // 如果索引等于5，则重置为0
+            if (i == 5) {
+                i = 0;
+            }
+            imgDom.src = imgs[i];
+        }
+
+        prev.onclick = function () {
+            i = --i == -1 ? 4 : i;
+            imgDom.src = imgs[i];
+        }
+    </script>
+</body>
+</html>

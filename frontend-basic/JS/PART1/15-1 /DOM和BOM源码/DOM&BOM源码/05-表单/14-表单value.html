@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form action="#">
+        用户名: <input type="text" name="username" /><br>
+        密　码: <input type="password" name="password" /><br>
+        性　别: <input type="radio" name="gender" value="男">男
+                    <input type="radio" name="gender" value="女">女
+                    <input type="radio" name="gender" value="未知">未知<br>
+        爱　好: <input type="checkbox" name="hobbies" value="吃">吃
+                    <input type="checkbox" name="hobbies" value="喝">喝
+                    <input type="checkbox" name="hobbies" value="玩">玩
+                    <input type="checkbox" name="hobbies" value="乐">乐<br>
+        籍　贯: <select name="addr">
+                        <option value="1">北京</option>
+                        <option value="2">上海</option>
+                        <option value="3">广州</option>
+                        <option value="4">深圳</option>
+                    </select><br>
+        简　介: <textarea name="sign">这家伙很懒，什么都没写...</textarea><br>
+        <button type="submit">提交</button>
+    </form>
+
+
+    <script>
+        // 目标： 点击提交按钮时，将所有填写和选中的值输出到终端
+        var form = document.querySelector('form');
+
+        // 使用属性选择器获取标签对象
+        var username = document.querySelector('[type="text"]');
+        var password = document.querySelector('[name="password"]');
+        var gender = document.querySelectorAll('[name=gender]');
+        var addr = document.querySelector('[name=addr]');
+        var sign = document.querySelector('[name=sign]');
+
+        var hobbies = document.querySelectorAll('[name=hobbies]');
+ 
+        form.onsubmit = function () {
+            console.log(username.value);
+            console.log(password.value);
+            console.log(addr.value);
+            console.log(sign.value);
+            
+            for (var i = 0; i < gender.length; i++) { 
+                if (gender[i].checked == true) {
+                    console.log(gender[i].value);
+                }
+            }
+
+            // 处理复选框
+            for (var i = 0; i < hobbies.length; i++) {
+                if (hobbies[i].checked == true) {
+                    console.log(hobbies[i].value);
+                }
+            }
+
+            return false;
+        }
+        
+        
+    </script>
+</body>
+</html>

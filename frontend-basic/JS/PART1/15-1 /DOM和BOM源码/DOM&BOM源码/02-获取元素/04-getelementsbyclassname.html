@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <p class="word">俺从不写错字，但俺写通假字</p>
+    <div class="word">执子之手，将子拖走</div>
+    <h1 class="word">一觉醒来，天都黑了</h1>
+
+    <script>
+        var colors = ["red", "green", "blue"];
+        var doms = document.getElementsByClassName('word');
+        console.dir(doms);
+        for (var i = 0; i < doms.length; i++) {
+            doms[i].style.color = colors[i];
+        }
+    </script>
+</body>
+</html>

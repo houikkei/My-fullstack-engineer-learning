@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <ul>
+        <li id="f">
+            <b>第一章</b>
+            <a href="#">秦王天宫</a>
+        </li>
+    </ul>
+
+    <script>
+        var str = '<li><b>第二章</b> <a href="#">南海神庙</a></li>';
+
+        // document.querySelector('ul').insertAdjacentHTML('beforeend', str);
+
+        document.querySelector('#f').insertAdjacentHTML('afterend', str);
+
+
+    </script>
+</body>
+</html>

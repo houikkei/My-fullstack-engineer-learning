@@ -1,0 +1,125 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        thead {
+            background-color: #ccc;
+        }
+
+        .gray {
+            background-color: #eee;
+        }
+    </style>
+</head>
+<body>
+    <table align="center" width="500" border="1" cellspacing="0">
+        <caption><h3>用户列表</h3></caption>
+        <thead>
+            <tr>
+                <th width="40"><input type="checkbox"></th>
+                <th>id</th>
+                <th>姓名</th>
+                <th>昵称</th>
+                <th>性别</th>
+                <th width="80">操作</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr>
+                <td><input type="checkbox"></td>
+                <td>1</td>
+                <td>Lux</td>
+                <td>光辉女郎</td>
+                <td>女</td>
+                <td>
+                <a href="javascript:;">编辑</a>
+                <a href="javascript:;">删除</a>
+                </td>
+            </tr>
+            <tr>
+                <td><input type="checkbox"></td>
+                <td>2</td>
+                <td>Jax</td>
+                <td>武器大师</td>
+                <td>男</td>
+                <td>
+                <a href="javascript:;">编辑</a>
+                <a href="javascript:;">删除</a>
+                </td>
+            </tr>
+            <tr>
+                <td><input type="checkbox"></td>
+                <td>3</td>
+                <td>VN</td>
+                <td>暗夜猎手</td>
+                <td>女</td>
+                <td>
+                <a href="javascript:;">编辑</a>
+                <a href="javascript:;">删除</a>
+                </td>
+            </tr>
+            <tr>
+                <td><input type="checkbox"></td>
+                <td>4</td>
+                <td>Ashe</td>
+                <td>寒冰射手</td>
+                <td>女</td>
+                <td>
+                <a href="javascript:;">编辑</a>
+                <a href="javascript:;">删除</a>
+                </td>
+            </tr>
+            <tr>
+                <td><input type="checkbox"></td>
+                <td>5</td>
+                <td>Raze</td>
+                <td>符文法师</td>
+                <td>男</td>
+                <td>
+                <a href="javascript:;">编辑</a>
+                <a href="javascript:;">删除</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script>
+        // 获取表头复选框（全选复选框）
+        var allCheck = document.querySelector('thead input');
+        // 获取表体复选框
+        var checks = document.querySelectorAll('tbody input');
+
+        // 全选复选框绑定点击事件
+        allCheck.onclick = function () {
+            // 获取全选复选框的状态
+            var status = this.checked;
+            // 将状态同步给表体的所有复选框
+            for (var i = 0; i < checks.length; i++) {
+                checks[i].checked = status;
+            }
+        }
+
+        // 表体复选框循环绑定点击事件
+        for (var i = 0; i < checks.length; i++) {
+            checks[i].onclick = function () {
+                // 循环检测所有表体复选框的状态，一旦有false，则将flag标志设置为false
+                for (var j = 0; j < checks.length; j++) {
+                    if(checks[j].checked == false) {
+                        allCheck.checked = false;
+                        // 当flag变为false时要立即结束循环
+                        break;
+                    } else {
+                        allCheck.checked  = true;
+                    }
+                }
+            }
+        }
+
+    </script>
+</body>
+</html>

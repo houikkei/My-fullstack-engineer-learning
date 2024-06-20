@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./font/iconfont.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        .box {
+            margin: 30px auto;
+            width: 304px;
+            height: 40px;
+            border-top: 1px solid #ccc;
+            border-bottom: 1px solid #ccc;
+        }
+        .box>div {
+            float: left;
+        }
+        .box .lock,.box .eye {
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            border-right: 1px solid #ccc;
+            border-left: 1px solid #ccc;
+            background-color: #F4F4F4;
+        }
+        .box .iconfont {
+            font-size: 24px;
+            color: #a0a0a0;
+        }
+        #pwd {
+            box-sizing: border-box;
+            width: 220px;
+            height: 36px;
+            padding: 0 10px;
+            outline: none;
+            border: 0;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <div class="lock">
+            <span class="iconfont icon-suo"></span>
+        </div>
+        <div class="inp">
+            <input id="pwd" type="password" placeholder="密码">
+        </div>
+        <div class="eye">
+            <span class="iconfont icon-yanjing"></span>
+        </div>
+    </div>
+
+    <script>
+        
+        var eye = document.querySelector('.eye');
+        var pwd = document.querySelector('#pwd');
+        var eyeIcon = document.querySelector('.eye span');
+
+        eye.onclick = function () {
+            if (pwd.type == 'password') {
+                pwd.type = 'text';
+                eyeIcon.className = "iconfont icon-yanjing1";
+            } else {
+                pwd.type = 'password';
+                eyeIcon.className = "iconfont icon-yanjing";
+            }
+        }
+        
+        
+    </script>
+</body>
+</html>

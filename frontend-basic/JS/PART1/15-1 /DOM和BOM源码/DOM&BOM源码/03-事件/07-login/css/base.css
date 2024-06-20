@@ -1,0 +1,24 @@
+﻿* {
+    margin: 0;
+    padding: 0
+}
+img {
+    border: 0;
+    vertical-align: middle;
+}
+
+li {
+    list-style: none;
+}
+
+button,
+input {
+    font-family: 'Microsoft YaHei', 'Heiti SC';
+    outline: none;
+}
+
+body {
+    background-color: #fff;
+    font: 16px/1.5 'Microsoft YaHei', 'Heiti SC';
+    color: #666
+}

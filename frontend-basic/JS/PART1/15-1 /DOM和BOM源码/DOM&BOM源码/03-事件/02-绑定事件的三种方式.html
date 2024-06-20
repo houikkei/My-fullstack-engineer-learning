@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!-- 目标：点击按钮，弹出一个对话框，对话框内显示我被点了一下 -->
+    <!-- <button onclick="alert('我被点了一下')">点我</button> -->
+
+    <button>点我</button>
+
+    <script>
+        // 1. 获取事件源
+        var btn = document.querySelector('button');
+
+        // 2. 使用addEventListener方法来绑定事件
+        // 参数1： 事件类型（不需要写 on）
+        // 参数2： 事件处理函数（匿名函数）
+        btn.addEventListener('click', function () {
+            alert('我被点了一下')
+        })
+    </script>
+</body>
+</html>

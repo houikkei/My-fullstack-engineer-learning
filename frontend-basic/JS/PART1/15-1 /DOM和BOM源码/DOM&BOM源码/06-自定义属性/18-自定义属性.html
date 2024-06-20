@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div data-name="zs" data-age="8" data-abc="abcdefg">abc</div>
+
+    <script>
+        var div = document.querySelector('div');
+        div.setAttribute('data-id', 1);
+        div.setAttribute('data-gender', '女');
+
+        console.log(div.getAttribute('data-abc'));
+
+        div.removeAttribute('data-gender');
+
+        div.setAttribute('style', 'color: red');
+        div.removeAttribute('style');
+
+        console.log(div);
+
+        for (var k in div.dataset) {
+            console.log(k, div.dataset[k]);
+        }
+    </script>
+</body>
+</html>

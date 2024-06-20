@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        .box {
+            position: relative;
+            width: 500px;
+            margin: 30px auto;
+        }
+        ul {
+            position: absolute;
+            z-index: 1;
+        }
+        li {
+            box-sizing: border-box;
+            float: left;
+            list-style: none;
+            cursor: pointer;
+            width: 100px;
+            height: 36px;
+            line-height: 36px;
+            background-color: #eee;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px 8px 0 0;
+            text-align: center;
+            font-size: 14px;
+        }
+        .clearfix:after {
+            content: "";
+            display: block;
+            height: 0;
+            clear: both;
+            visibility: hidden;
+        }
+        .content {
+            position: absolute;
+            top: 35px;
+            left: 0;
+            width: 500px;
+            height: 300px;
+            border: 1px solid #ccc;
+        }
+        
+        .content>div {
+            display: none;
+            width: 100%;
+            height: 300px;
+            line-height: 300px;
+            font-size: 30px;
+            text-align: center;
+        }
+
+        li.active {
+            border-top: 3px solid orange;
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+            color: orange;
+        }
+        
+        .content .current {
+            display: block;
+        } 
+    </style>
+</head>
+<body>
+    <div class="box">
+        <ul class="clearfix">
+            <li class="active">足球</li>
+            <li>篮球</li>
+            <li>乒乓球</li>
+        </ul>
+        <div class="content">
+            <div class="current">足球消息列表</div>
+            <div>篮球消息列表</div>
+            <div>乒乓球消息列表</div>
+        </div>
+    </div>
+
+    <script>
+        var lis = document.querySelectorAll('li');
+        var divs = document.querySelectorAll('.content>div');
+
+        lis.forEach(function (item, index) {
+            item.onmouseenter = function () {
+                // 循环将li标签上的class值清除
+                lis.forEach(function (val, i) {
+                    val.className = '';
+                })
+                this.className = 'active';
+
+                divs.forEach(function (val, i) {
+                    val.className = '';
+                })
+                divs[index].className = 'current';
+            }
+        })
+
+    </script>
+
+</body>
+</html>

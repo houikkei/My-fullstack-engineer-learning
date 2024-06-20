@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        .w {
+            width: 1000px;
+            margin: 0 auto;
+        }
+        a {
+            display: inline-block;
+            height: 50px;
+            line-height: 50px;
+            padding: 0 20px;
+            text-decoration: none;
+            color: #fff;
+        }
+        #topbar {
+            height: 50px;
+            line-height: 50px;
+        }
+
+        #topbar .w {
+            position: relative;
+        }
+        .title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #5E5E5E;
+        }
+        #header {
+            height: 50px;
+        }
+
+        ul {
+            position: absolute;
+            top: 20px;
+            right: 10px;
+        }
+
+        li {
+            box-sizing: border-box;
+            float: left;
+            list-style: none;
+            width: 20px;
+            height: 20px;
+            margin-left: 10px;
+        }
+
+        .blue {
+            background-color: #458FD2;
+        }
+    </style>
+</head>
+<body>
+    <div id="topbar" class="title">
+        <div class="w">
+            前端开发博客
+            <ul>
+                <li style="background:#DD5044;"></li>
+                <li style="background:#1CA261;"></li>
+                <li style="background:#458FD2;"></li>
+                <li style="background:#333;"></li>
+            </ul>
+        </div>
+    </div>
+    <div id="header" class="blue">
+        <div class="w nav">
+            <a href="#">首页</a>
+            <a href="#">Web前端</a>
+            <a href="#">Java开发</a>
+            <a href="#">人工只能</a>
+            <a href="#">UI设计</a>
+        </div>
+    </div>
+
+    <script>
+        var nav = document.querySelector('#header');
+        var lis = document.querySelectorAll('li');
+        for (let i = 0; i < lis.length; i++) {
+            lis[i].onclick = function () {
+                console.log(i)
+                nav.style.backgroundColor = this.style.backgroundColor;
+            }
+        }
+    </script>
+</body>
+</html>

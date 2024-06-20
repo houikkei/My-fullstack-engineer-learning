@@ -1,0 +1,78 @@
+.w {
+    width: 1200px;
+    margin: auto;
+}
+
+.header {
+    height: 100px;
+    border-bottom: 2px solid #F01414;
+}
+
+.logo {
+    padding-top: 15px;
+}
+
+.register-area {
+    height: 680px;
+    border: 1px solid #ccc;
+    margin-top: 20px;
+}
+
+.register-area h3 {
+    height: 40px;
+    border-bottom: 1px solid #ccc;
+    background-color: #ececec;
+    padding: 0 10px;
+    font-weight: 400;
+    line-height: 40px;
+    font-size: 18px;
+}
+
+.register-area h3 em {
+    float: right;
+    font-size: 14px;
+}
+
+.register-area a {
+    color: #c81623;
+}
+
+.reg-form {
+    width: 600px;
+    height: 400px;
+    margin: 40px auto 0;
+}
+
+.reg-form li {
+    margin-bottom: 20px;
+}
+
+.reg-form label {
+    display: inline-block;
+    width: 100px;
+    height: 36px;
+    line-height: 36px;
+    text-align: right;
+}
+
+.inp {
+    width: 238px;
+    height: 34px;
+    border: 1px solid #ccc;
+    margin-left: 10px;
+    padding-left: 10px;
+}
+
+.btn {
+    padding: 5px 20px;
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    margin-left: 120px;
+    background-color: #a00;
+    border-radius: 3px;
+}
+
+.btn-primary {
+    margin-left: 20px;
+}

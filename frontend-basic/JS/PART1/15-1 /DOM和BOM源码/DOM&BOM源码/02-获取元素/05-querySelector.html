@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+    <h1 id="book">盗墓笔记</h1>
+    <p class="title">鬼吹灯</p>
+    <span>茅山后裔</span>
+
+    <ul class="music">
+        <li>星星点灯</li>
+        <li>大风车</li>
+        <li id="new">百战成诗</li>
+    </ul>
+
+    <script>
+        // var span = document.querySelector('span');
+        // console.log(span);
+        // var h = document.querySelector('#book');
+        // console.log(h);
+        // var p = document.querySelector('.title');
+        // console.log(p);
+
+        // var li = document.querySelector('.music #new');
+        // console.log(li);
+
+        // var li = document.querySelector('li');
+        // console.log(li);
+
+        var lis = document.querySelectorAll('ul>li');
+        console.log(lis);
+        for (var i = 0; i < lis.length; i++) {
+            console.log(lis[i]);
+        }
+    </script>
+</body>
+</html>

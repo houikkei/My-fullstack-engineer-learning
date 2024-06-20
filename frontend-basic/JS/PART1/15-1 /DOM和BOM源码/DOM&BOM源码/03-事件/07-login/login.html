@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>注册页面</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/register.css">
+</head>
+
+<body>
+    <div class="w">
+        
+        <div class="header">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="img/logo.png" alt="" style="width: 175px;">
+                </a>
+            </div>
+        </div>
+        
+        <div class="register-area">
+            <h3>
+                用户登录
+                <em>
+					没有账号，请 <a href="login.html">注册</a>
+				</em>
+            </h3>
+            <div class="reg-form">
+
+                <form action="demo.php">
+                    <ul>
+                        <li>
+                            <label for="tel">账号:</label>
+                            <input type="text" class="inp" id="account" placeholder="账号">
+                            <span class="account-msg">		
+                                账号长度必须在6-12位之间
+						    </span>
+                        </li>
+                        <li>
+                            <label for="">密码:</label>
+                            <input type="password" class="inp" id="pwd" placeholder="密码">
+                            <span class="pwd-msg">
+                                密码长度必须在8-16位之间
+                            </span>
+                        </li>
+                        <li>
+                            <input type="reset" value="重填" class="btn reset">&emsp;
+                            <input type="submit" value="提交" class="btn btn-primary">
+                        </li>
+                    </ul>
+                </form>
+
+            </div>
+        </div>
+        <div class="footer">
+            <img src="./img/footer.jpg" alt="">
+        </div>
+    </div>
+
+    <script src="./js/login.js"></script>
+</body>
+
+</html>

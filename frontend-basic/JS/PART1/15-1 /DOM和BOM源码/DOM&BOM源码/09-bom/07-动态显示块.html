@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .box {
+            width: 800px;
+            height: 300px;
+            margin: 30px auto;
+        }
+
+        .left {
+            float: left;
+            width: 350px;
+            height: 300px;
+            background-color: orange;
+            margin-right: 10px;
+        }
+        .right {
+            float: right;
+            width: 280px;
+            height: 300px;
+            background-color: green;
+        }
+        .tmp {
+            float: left;
+            width: 150px;
+            height: 300px;
+            background-color: blue;
+        }
+
+        .hide {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <div class="left"></div>
+        <div class="tmp"></div>
+        <div class="right"></div>
+    </div>
+
+    <script>
+        // 核心思想: 在onresize事件中不断监听 innerWidth 的值
+        // 当 innerWidth小于某一值时隐藏 tmp 
+        // 当 innerWidth大于某一值时显示 tmp
+
+        var boxDom = document.querySelector('.box');
+        var tmpDom = document.querySelector('.tmp');
+
+        window.onresize = function () {
+            if(window.innerWidth < 900) {
+                tmpDom.style.display = 'none';
+                boxDom.style.width = '640px';
+            }  else {
+                tmpDom.style.display = 'block';
+                boxDom.style.width = '800px';
+            }
+        }
+    </script>
+</body>
+</html>

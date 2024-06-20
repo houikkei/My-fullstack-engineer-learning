@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div style="margin: 30px auto; width: 500px;height: 100px;">
+        <input id="num1" type="text">
+        <select id="operator">
+            <option value="+">+</option>
+            <option value="-">-</option>
+            <option value="*">×</option>
+            <option value="/">÷</option>
+        </select>
+        <input id="num2" type="text">
+        <button>=</button>
+        <span id="result"></span>
+    </div>
+    
+
+    <script>
+        var num1 = document.querySelector('#num1');
+        var num2 = document.querySelector('#num2');
+        var operator = document.querySelector('#operator');
+        var btn = document.querySelector('button');
+        var result = document.querySelector('#result');
+        var res = null;
+        
+        btn.onclick = function () {
+            switch (operator.value) {
+                case '+':
+                    res = parseInt(num1.value) + parseInt(num2.value);
+                    break;
+                case '-':
+                    res = num1.valu) -num2.value;
+                    break;
+                case '*':
+                    res = num1.value * num2.value;
+                    break;
+                case '/':
+                    res = num1.value / num2.value;
+                    break;
+            }
+            result.innerHTML = res
+        }
+        
+    </script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <input type="text">
+    <br><br>
+    
+    <textarea></textarea>
+
+    <script>
+        // 目标1：在单行文本框上注册keyup事件，将文本框中的内容输出到终端
+        // 目标2：在单行文本框上注册keydown事件，将文本框中的内容输出到终端
+        // 目标3：在单行文本框上注册keypress事件，将文本框中的内容输出到终端
+        var input = document.querySelector('input');
+        // input.onkeyup = function () {
+        //     // this指向事件的调用者。此处的this就是input
+        //     console.dir(this.value);
+        //     // console.log(this === input);  // true
+        // }
+
+        // input.onkeydown = function () {
+        //     console.log(this.value)
+        // }
+
+        // input.onkeypress = function () {
+        //     console.log(this.value);
+        // }
+
+    
+        // 目标4：在多行文本框上注册keyup事件，将文本框中的内容输出到终端
+        document.querySelector('textarea').onkeyup = function () {
+            console.log(this.value);
+        }
+    
+    </script>
+</body>
+</html>
