@@ -1,0 +1,10 @@
+* {
+    margin: 0;
+    padding: 0;   
+}
+
+body {
+    font-size: 14px;
+    font-family: "微软雅黑";
+    background-color: #F8F8F8;
+}

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        div ul li {  /* 0, 0, 0, 3*/
+            color: red;
+        }
+
+        #nav ul li {  /* 0, 1, 0, 2*/
+            color: blue;
+        }
+
+        div .list #one {  /* 0, 1, 1, 1 */
+            color: orange;
+        }
+        li {  /* 0 ,0, 0, 1*/
+            color: lightblue!important;
+        }
+    </style>
+</head>
+<body>
+    <div id="nav">
+        <ul class="list">
+            <li id="one" style="color: pink;">兰博基尼</li>
+            <li>布加迪威龙</li>
+            <li>阿斯顿马丁</li>
+        </ul>
+    </div>
+</body>
+</html>

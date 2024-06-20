@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        var a = 18;
+        var b = 6;
+
+        console.log(a + b);        // 24
+        console.log(a - b);         // 12
+        console.log(a * b);         // 108
+        console.log(a / b);         // 3
+        console.log(a % b);       // 0
+
+        //  浮点数在运算时会有精度问题
+        console.log(0.1 + 0.2);            // 0.30000000000000004
+        console.log(0.07 * 100);          // 7.000000000000001
+
+        // toFixed(num);   只保留小数点后几位
+        console.log((0.1 + 0.2).toFixed(1));
+
+        console.log(a++);    // 18
+        console.log(--b);      // 5
+
+    </script>
+</body>
+</html>

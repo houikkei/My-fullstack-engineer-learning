@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        var a = 10;
+        var b = 6;
+
+        console.log(a > b ? '大于' : '小于');    // 大于
+
+        var result = typeof a == 'string' ? a + b : a - b;
+        console.log(result);    // 4
+
+
+        // 三元运算符很多时候可以代替if...else结构 （在程序块内容比较少的时候）
+        // var age = 20;
+
+        // if (age >= 18) {
+        //     console.log('成年人');
+        // } else {
+        //     console.log('未成年人');
+        // }
+        var age = 20;
+        console.log( age >= 18 ? '成年人' : '未成年人');
+
+    </script>
+</body>
+</html>

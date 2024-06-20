@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        // 全局变量，在script标签范围内都是有效的
+        var name = "王小明";
+        var age    = 8;
+
+        function show () {
+            // 在show函数中可以调用name和age变量
+            console.log("大家好，我叫" + name +", 今年" + age + "岁");
+        }
+
+        show ();
+
+        // 局部变量，在函数体内声明的变量在函数体外是无效的
+        // function init () {
+        //     var a = 10;
+        // }
+        // init()
+        // console.log(a);
+
+
+        function fn1 () {
+            function fn2 () {
+                function fn3 () {
+                    console.log(name);
+                }
+                fn3();
+            }
+            fn2();
+        }
+
+        fn1()
+    </script>
+</body>
+</html>

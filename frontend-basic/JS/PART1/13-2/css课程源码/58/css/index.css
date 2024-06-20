@@ -1,0 +1,65 @@
+#topbar {
+    height: 35px;
+    border-bottom: 1px solid #eee;
+    background-color: #fff;
+}
+
+.w {
+    width: 1190px;
+    margin: 0 auto;
+}
+
+.headbar {
+    height: 35px;
+}
+
+.left-bar {
+    float: left;
+    width: 350px;
+    height: 35px;
+    background-color: orange;
+}
+.right-bar {
+    float: right;
+    width: 500px;
+    height: 35px;
+    background-color: green;
+}
+
+.main {
+    height: 600px;
+    background-color: #eee;
+    margin-top: 10px;
+}
+
+.main-left {
+    float: left;
+    width: 750px;
+    height: 600px;
+    background-color: orange;
+}
+.main-right {
+    float: right;
+    width: 430px;
+    height: 600px;
+    background-color: blue;
+}
+
+.fl-1 {
+    float: left;
+    width: 250px;
+    height: 600px;
+    background-color: red;
+}
+.fl-2 {
+    float: left;
+    width: 250px;
+    height: 600px;
+    background-color: green;
+}
+.fl-3 {
+    float: left;
+    width: 250px;
+    height: 600px;
+    background-color: pink;
+}

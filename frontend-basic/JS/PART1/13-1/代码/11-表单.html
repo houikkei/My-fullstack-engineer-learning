@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form action="http://127.0.0.1/a.php" method="post">
+        <input type="hidden" name="rid" value="10">
+        账号: <input type="text" name="username" value="admin" placeholder="root" maxlength="10" readonly disabled="disabled" /><br>
+        密码: <input type="password" name="pwd" value="123123" placeholder="123456" /><br>
+        性别: <input type="radio" name="gender" value="1"/>男
+                 <input type="radio" name="gender" value="2" />女
+                 <input type="radio" name="gender" value="3" />未知<br>
+        爱好: <input type="checkbox" name="hobby[]" value="e" />吃
+                <input type="checkbox" name="hobby[]" value="d" />喝
+                <input type="checkbox" name="hobby[]" value="p" />玩
+                <input type="checkbox" name="hobby[]" value="h" />乐<br>
+        头像: <input type="file" multiple="multiple" /><br>
+        地址: <select name="addr">
+                    <option value="bj">北京</option>
+                    <option value="sh">上海</option>
+                    <option value="gz">广州</option>
+                    <option value="sz">深圳</option>
+                </select><br>
+        简介: <textarea name="sign" cols="30" rows="20"></textarea><br>
+        <input type="button" value="普通按钮" />
+        <input type="reset" value="重置表单按钮">
+        <input type="submit" />
+    </form>
+</body>
+</html>

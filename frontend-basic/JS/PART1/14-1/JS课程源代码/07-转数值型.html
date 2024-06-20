@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        // 正常转换： 使用数值型字符串转数值型
+        // console.log(parseInt('123'));                // 123
+        // console.log(parseInt('-123'));               // -123
+        // console.log(parseInt('3.7'));                  // 3
+        // console.log(parseFloat('3.14'));            // 3.14
+
+        // console.log(Number('123'));                // 123
+        // console.log(Number('3.14'));               // 3.14
+        // console.log(Number('-123'));               // -123
+
+        // // 隐式转换
+        // console.log('123' - 0)                            // 123    
+        // console.log('123' * 1)                            // 123
+        // console.log('123' / 1)                            // 123
+
+
+        // 特殊情况，能将单位中的数字独立取出并转换
+        // console.log(parseInt('120px'));                 // 120 
+
+        // 普通字符串、布尔型、Undefined、null 统统转为 NaN
+        // console.log(parseInt('a120px'));  
+        // console.log(parseInt(true));     
+        // console.log(parseInt(undefined));  
+        // console.log(parseInt(null));       
+
+        // // Number函数的特殊转换
+        console.log(Number(true));                      // 1
+        console.log(Number(false));                     // 0
+        console.log(Number(undefined));            // NaN
+        console.log(Number(null));                      // 0
+
+        
+
+
+    </script>
+</body>
+</html>

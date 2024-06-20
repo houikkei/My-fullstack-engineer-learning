@@ -1,0 +1,50 @@
+body {
+    font-size: 16px;
+    font-family: "微软雅黑";
+    color: #333;
+}
+
+a {
+    text-decoration: none;
+    color: #990000;
+}
+
+/* 优先级: ID选择器 > 类选择器 > 标签选择器  */
+
+p {
+    text-indent: 2em;
+}
+
+.indent {
+    text-indent: 0em;
+}
+
+h1 {
+    text-align: center;
+    color: #4D4F53;
+}
+
+.i {
+    font-style: italic;
+    color: #666;
+}
+
+.font12 {
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.key {
+    font-size: 18px;
+}
+
+.author {
+    font-size: 18px;
+    text-align: right;
+    color: #ccc;
+    font-style: italic;
+}
+
+.date {
+    color: #978888;
+}

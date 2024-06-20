@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        var str = "abcdefgabc";
+
+        // charAt(index)	返回在指定位置的字符
+        console.log(str.charAt(1))
+
+
+        // indexOf() / lastIndexOf()	
+        // 找出指定字符串第一次/最后一次出现的索引
+        console.log(str.indexOf('c'));
+        console.log(str.lastIndexOf('c'));
+
+        
+
+        // toLowerCase() / toUpperCase()	
+        // 转换为小写字母\转换为大写字母
+        console.log(str.toUpperCase());
+        console.log('ABC'.toLowerCase());
+
+
+
+        // slice() / substr()	截取字符串
+        // slice() 有两个参数
+        // 参数1: 指定截取的起点
+        // 参数2: 可选参数，指定截取的终点 (不包含终点)
+        console.log(str.slice(1));
+        console.log(str.slice(1, 3));
+
+        // substr() 有两个参数
+        // 参数1: 指定截取的的起点
+        // 参数2: 可选参数，指定截取的长度
+        console.log(str.substr(3));
+        console.log(str.substr(3, 3));
+
+        // split()	把字符串分割为字符串数组  (与 join 是反向操作)
+        var s1 = 'aa-bb-s-cc-dd';
+        console.log(s1.split('-'));
+        console.log(s1.split('s'));
+
+    </script>
+</body>
+</html>

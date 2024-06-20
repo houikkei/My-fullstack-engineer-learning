@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        var Star = {
+            name : '黄老师',
+            age : 18,
+            gender : '男',
+            sayHi : function(){
+                alert('大家好，我是正经正直正义的黄老师~');
+            }
+        };
+
+        // var name = "age";
+
+        console.log(Star.name);
+        console.log(Star["name"]);
+        // console.log(Star[name]);   //Star["age"]
+
+        Star.sayHi()
+    </script>
+</body>
+</html>

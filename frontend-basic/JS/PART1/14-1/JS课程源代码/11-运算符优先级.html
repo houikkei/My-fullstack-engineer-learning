@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        var a = 6 === "6";
+        console.log('a:', a);   // a: false
+
+        var num = 6;
+        //            false  ||    false          &&   true
+        var b = 6 >= 8 || num++ > 6 && 3 != 2;
+        console.log('b', b);   //false
+
+        //                      false   ||   true  &&          true            &&  true
+        console.log(3 === '3' || 10 >6 && !(12 * 2 == 144) && 10 == '10')  // true
+
+    </script>
+</body>
+</html>
