@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <button>btn0</button>
+    <button>btn1</button>
+    <button>btn2</button>
+
+    <script>
+        // 循环为所有按钮绑定点击事件，在事件中输出当前的 i 值
+
+        var btns = document.querySelectorAll('button');
+        for (let i = 0; i < btns.length; i++) {
+            btns[i].onclick = function () {
+                console.log(i);
+            }
+        }
+        // console.log(i);
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        .box {
+            width: 450px;
+            height: 226px;
+            border: 1px solid #ccc;
+            background-image: url(images/line.jpg);
+            margin-top: 30px;
+            margin-left: 300px;
+            padding: 0 10px;
+        }
+        h3 {
+            height: 50px;
+            line-height: 50px;
+            font-size: 18px;
+            border-bottom: 1px solid #ccc;
+            padding-left: 15px;
+        }
+        a {
+            color: #000;
+            text-decoration: none;
+        }
+
+        li {
+            padding: 5px 15px;
+            list-style: url(images/c11.jpg);
+            list-style-position: inside;
+            border-bottom: 1px dashed #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h3>沙雕新闻</h3>
+        <ul>
+            
+        </ul>
+    </div>
+
+    <script>
+        let titles = [
+            '一大仙在公安局“跳大神”对周围人发功说：“你今晚必死无疑”',
+            '小偷给关二爷下跪，给民警送锦旗',
+            'nginx反向代理配置中你不知道的二三事',
+            '女子怀疑家中进小偷，报警后发现是自己老公',
+            '美国男子抢劫中餐厅，因语言不通空手而归'
+        ];
+        
+        let str = '';
+        for (let i = 0; i < titles.length; i++) {
+            str += `
+                <li>
+                    <a href="#">
+                        ${titleHandle(titles[i], 15, '~~')}
+                    </a>
+                </li>`;
+        }
+        document.querySelector('ul').innerHTML = str;
+
+        // 思路： 封装一个函数对标题进行处理
+        // 判断标题长度是否超过20个字符，如果没有超过，则不进行处理
+        // 如果超过20个字符，则截取20个字符，之后再拼接 ...  即可
+        // 参数1：要处理的标题
+        function titleHandle (title, length = 20, mark = ' ...') {
+            if (title.length < length) {
+                return title;
+            } else {
+                return title.substr(0, length) + mark;
+            }
+        }
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        // es5 -- arguments
+        // function show () {
+        //     console.log(arguments);
+        //     for (let i = 0; i < arguments.length; i++) {
+        //         console.log(arguments[i]);
+        //     }
+        // }
+
+        // show(1, '小新', 4, '男');
+
+
+        // es6 -- rest参数
+        function show (...args) {
+            console.log(args);
+            for (let i = 0; i < args.length; i++) {
+                console.log(args[i])
+            }
+        }
+
+        show(2, '美牙', 30, '女');
+
+    </script>
+</body>
+</html>

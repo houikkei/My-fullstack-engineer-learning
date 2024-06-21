@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        // function Person (name, age) {
+        //     this.name = name;
+        //     this.age = age;
+        //     this.sayHi = function () {
+        //         console.log(`大家好，我叫${this.name}, 今年${this.age}岁`);
+        //     }
+        // }
+
+        // let p = new Person('王小明', 8);
+        // console.log(p.name);
+        // console.log(p.age);
+        // p.sayHi();
+
+
+        let Person = (name, age) => {
+            this.name = name;
+            this.age = age;
+        }
+
+        new Person('王小明', 8);
+
+    </script>
+</body>
+</html>

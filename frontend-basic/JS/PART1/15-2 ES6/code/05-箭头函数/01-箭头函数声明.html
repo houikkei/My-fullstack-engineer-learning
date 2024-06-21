@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+<script>
+    const goodsId = 10001;
+    const goodsName = '机械键盘';
+    const goodsPrice = 369;
+
+    const obj = {
+        goodsId, //声明对象时,值的变量名和属性名相同时,可以只写属性而不写值
+        goodsName,
+        goodsPrice,
+        ad () {
+            console.log('用这个键盘吃鸡太爽了');
+        }
+    }
+    console.log(obj.goodsName);
+    obj.ad();
+
+    // const obj = {
+    //     goodsId: 10001,
+    //     goodsName: '机械键盘',
+    //     goodsPrice: 369,
+    // }
+
+</script>
+</body>
+</html>

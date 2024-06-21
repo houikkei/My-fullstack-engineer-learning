@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div>
+
+    </div>
+
+    <script>
+        const {name, age} = {name: "小白", age: 18};
+        function sayHi () {
+            return `大家好`;
+        }
+
+        // let str = "<ul><li>" + name + "</li></ul>";
+        let str = `
+            <ul>
+                <li>姓名: ${name}</li>
+                <li>年龄: ${age}</li>
+                <li>${sayHi()}</li>
+            </ul>
+        `;
+
+
+        document.querySelector('div').innerHTML = str;
+
+    </script>
+</body>
+</html>
