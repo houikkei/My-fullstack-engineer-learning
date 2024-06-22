@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app">
+        <p :style="{fontSize: objStyle.fs, backgroundColor: objStyle.bgc}">明月几时有，把酒问青天</p>
+        <h3 :style="[a, b]">不知天上宫阙，今夕是何年</h3>
+    </div>
+
+    <script src="./lib/vue.js"></script>
+    <script>
+        const app = {
+            data () {
+                return {
+                    objStyle: {
+                        fs: '20px',
+                        bgc: 'orange'
+                    },
+                    a: {
+                        fontSize: '30px',
+                        color: 'blue',
+                        backgroundColor: 'green'
+                    },
+                    b: {
+                        border: '2px solid red'
+                    }
+                }
+            }
+        }
+
+        Vue.createApp(app).mount('#app');
+    </script> 
+</body>
+</html>

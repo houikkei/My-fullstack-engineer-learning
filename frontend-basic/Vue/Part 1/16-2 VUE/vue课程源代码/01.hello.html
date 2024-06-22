@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- 第一步： 引入vue的核心文件 -->
+    <script src="./lib/vue.js"></script>
+</head>
+<body>
+    <!-- 第二步：在body中设置一个标签, vue会控制该标签 -->
+    <div class="app">
+        {{msg}} - {{title}} - {{price}}
+    </div>
+
+    <script>
+        Vue.createApp({
+            data () {
+                return {
+                    msg: 'Hello Vue3',
+                    title: 'Java面试精讲',
+                    price: '$156'
+                }
+            }
+        }).mount('.app')
+    </script>
+</body>
+</html>
+
+//data方法用来配置数据,内部必须使用return来返回一个对象
+//对象内的数据就是可用的数据,该数据可以在被控制的div区域内和createApp参数内使用
+//{{msg}}:差值表达式
+将数据插入到页面中 插值表达式支持基本的计算操作

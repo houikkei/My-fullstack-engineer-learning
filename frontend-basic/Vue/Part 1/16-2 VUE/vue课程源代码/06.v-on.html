@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .status {
+            width: 100px;
+            height: 100px;
+            line-height: 100px;
+            text-align: center;
+            background-color: orange;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <!-- 目标：点击div，清除样式 -->
+    <div id="app">
+        <div 
+            :class="{ status: isStatus }" 
+            v-on:click="handle"
+            @mouseenter="enter('哈哈哈，我来了')"
+        >点我</div>
+    </div>
+
+    <script src="./lib/vue.js"></script>
+    <script>
+        const app = {
+            data () {
+                return {
+                    isStatus: true
+                }
+            },
+            methods: {
+                // handle () {
+                //     console.log('我被点了一下')
+                // },
+                enter (str) {
+                    console.log(str);
+                },
+                handle () {
+                    // 在对象中如果想调用data中的数据，一定需要使用this指针
+                    this.isStatus = !this.isStatus
+                }
+            }
+        }
+
+        Vue.createApp(app).mount('#app');
+    </script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #app .content {
+            width: 600px;
+            margin: 30px auto;
+        }
+        #app .content img {
+            width: 600px;
+        }
+        #app .content div {
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="content">
+            <img :src="list[i]" alt="">
+            <div>
+                <button @click="prev">上一张</button>
+                <button @click="next">下一张</button>//methods
+            </div>
+        </div>
+    </div>
+
+    <script src="./lib/vue.js"></script>
+    <script>
+        const app = {
+            data () {
+                return {
+                    // 图片路径数组
+                    list: [
+                        "./images/1.jpg",
+                        "./images/2.jpg",
+                        "./images/3.jpg",
+                        "./images/4.jpg",
+                        "./images/5.jpg"
+                    ],
+                    // 索引，对应图片数组的索引
+                    i: 0
+                }
+            },
+            methods: {
+                next () {
+                    this.i = ++this.i == 5 ? 0 : this.i;
+                },
+                prev () {
+                    this.i = --this.i == -1 ? 4 : this.i;
+                }
+            }
+        }
+
+        Vue.createApp(app).mount('#app');
+    </script>
+</body>
+</html>

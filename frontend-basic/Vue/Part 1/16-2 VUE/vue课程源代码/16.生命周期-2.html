@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="./lib/vue.js"></script>
+</head>
+<body>
+    <div id="app">
+        <p>{{msg}}</p>
+        <button @click="change">更新</button>
+    </div>
+
+    <script>
+        // 钩子函数必须从Vue对象中解构出来
+        const { 
+            ref, 
+            onBeforeMount,
+            onMounted,
+            onBeforeUpdate,
+            onUpdated
+        } = Vue;
+
+        let msg = ref('');
+        // 初始化数据的方法，在setup中直接调用即可
+        const getDate = () => {
+            msg.value = 'Hello World';
+        }
+
+        Vue.createApp({
+            setup () {
+                getDate();
+
+                onBeforeMount(() => {
+                    console.log('onBeforeMount');
+                })
+
+                onMounted(() => {
+                    document.querySelector('p').style.color = 'red';
+                    console.log('onMounted');
+                })
+
+                onBeforeUpdate (() => {
+                    console.log('onBeforeUpdate');
+                })
+
+                onUpdated (() => {
+                    console.log('onUpdated');
+                })
+
+                change = () => {
+                    msg.value = '你好，世界';
+                }
+
+                return { msg, change }
+            }
+            
+        }).mount('#app');
+    </script>
+</body>
+</html>
