@@ -1,4 +1,4 @@
 # backend - basic knowledge 
 - java
-- - java basic
+  - java basic
   - java web
