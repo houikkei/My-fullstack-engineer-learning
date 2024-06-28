@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script>
+        var employeeList = [
+            {
+                "empno": 7369,
+                "ename": "李宁",
+                "job": "软件工程师",
+                "hiredate": "2019-05-12",
+                "salary": 13000,
+                "dname": "研发部"
+            },
+            {
+                "empno": 7499,
+                "ename": "王乐",
+                "job": "客户经理",
+                "hiredate": "2017-04-22",
+                "salary": 10000,
+                "dname": "市场部",
+                "customers": [
+                    {
+                        "cname": "李东"
+                    },
+                    {
+                        "cname": "刘楠"
+                    }
+                ]
+            }
+        ];
+        for(var i = 0 ; i < employeeList.length ; i++){
+            var employee = employeeList[i];
+            console.log(employee);
+            document.write("<h1>");
+            document.write(employee.empno);
+            document.write("," + employee.ename);
+            document.write("," + employee.job);
+            document.write("," + employee.hiredate);
+            document.write("," + employee.salary);
+            document.write("," + employee.dname);
+            document.write("</h1>");
+            if(employee.customers != null){
+                document.write("<h2>---");
+                for(j = 0 ; j < employee.customers.length ; j++){
+                    var customer = employee.customers[j];
+                    document.write(customer.cname + ",")
+                }
+                document.write("</h2>");
+            }
+        }
+    </script>
+</head>
+<body>
+
+</body>
+</html>

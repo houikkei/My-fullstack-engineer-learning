@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <input id="btnLoad" type="button" value="加载"/>
+    <div id="divContent"></div>
+    <script>
+        document.getElementById("btnLoad").onclick = function(){
+            //1. 创建XMLHttpRequest对象
+            var xmlhttp;
+            if(window.XMLHttpRequest){
+                xmlhttp = new XMLHttpRequest();
+            }else{
+                xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+            }
+            console.log("XMLHttpRequest:",xmlhttp);
+            //2. 发送Ajax请求
+            xmlhttp.open("GET", "/content");
+            xmlhttp.send();
+            //3. 处理服务器响应
+            xmlhttp.onreadystatechange = function(){
+                if(xmlhttp.readyState == 4  && xmlhttp.status == 200){
+                    var t = xmlhttp.responseText;
+                    console.log(t);
+                    document.getElementById("divContent").innerHTML = document.getElementById("divContent").innerHTML + "<br/>" + t;
+                }
+            }
+        }
+    </script>
+</body>
+</html>
