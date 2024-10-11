@@ -1,8 +1,8 @@
 # Docker
 
-Docker 命令背记手册
-容器操作命令
-创建并启动容器                 docker run -it ubuntu bash
+-- Docker 命令背记手册
+-- 容器操作命令
+-- 创建并启动容器                 docker run -it ubuntu bash
 列出当前运行的容器              docker ps
 列出所有容器，包括未运行的       docker ps -a
 停止一个运行中的容器            docker stop [CONTAINER_ID]
