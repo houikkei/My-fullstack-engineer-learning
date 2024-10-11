@@ -1,0 +1,2383 @@
+DROP TABLE IF EXISTS temp_gen_parametric_measure_cell;
+
+CREATE temp TABLE temp_gen_parametric_measure_cell with(appendonly=true,compresstype=zstd) as
+
+select distinct coalesce(plant,'') plant,
+
+coalesce(sfc,'') sfc,coalesce(site,'') site,coalesce(item,'') item,
+
+coalesce(line,'') line,
+
+coalesce(resrce,'') resrce,
+
+coalesce(measure_name,'') measure_name,
+
+coalesce(operation,'') operation,
+
+coalesce(actual_num,0) actual_num,
+
+to_char(test_date_time,'yyyyMMdd') test_date_time
+
+from  gen.gen_parametric_measure_cell
+
+where test_date_time>='2022-11-01 0:00' and test_date_time<='2022-11-08 0:00'
+
+--test_date_time>='2022-11-01 0:00' and test_date_time<='2022-11-01 0:05'
+
+--and data_source='n2p_wip' and test_passed='true' and site='2001' --and actual_num=0
+
+distributed BY (sfc,site,item,line,operation,resrce,test_date_time);  --select * from temp_gen_parametric_measure_cell where item is null
+
+
+--select * from gen.gen_parametric_measure_cell
+
+DROP TABLE IF EXISTS temp_gen_parametric_measure_cell_tsocv_per_day_a; --select * from temp_gen_parametric_measure_cell_tsocv_per_day_a
+
+CREATE temp TABLE temp_gen_parametric_measure_cell_tsocv_per_day_a with(appendonly=true,compresstype=zstd) as
+
+with temp as(
+
+select item,
+
+--sfc,site,line,resrce,
+
+operation,measure_name,
+
+--actual_num,
+
+'产品PN+工序+同工序下参数代码' 空间统计维度,'天' 时间统计维度,test_date_time 天或7天,
+
+avg(actual_num) actual_num_mean,
+
+stddev(actual_num) actual_num_sigma,
+
+percentile_disc(0.75) within group(order by actual_num) actual_num_per_up,
+
+percentile_disc(0.25) within group(order by actual_num) actual_num_per_down,
+
+percentile_disc(0.5) within group(order by actual_num) actual_num_per_middle,
+
+percentile_disc(0.75) within group(order by actual_num)-percentile_disc(0.25) within group(order by actual_num) actual_num_iqr,
+
+string_agg(distinct actual_num||'',',') actual_num_group
+
+from temp_gen_parametric_measure_cell
+
+group by item,operation,measure_name,
+
+天或7天-- ,sfc,site,line,resrce,operation,measure_name,actual_num
+
+---order by 天或7天
+
+)
+
+select a.*,b.plant,b.sfc,b.site,b.line,b.resrce,b.actual_num,
+
+case when actual_num_mean=0 then 0 else actual_num_sigma/actual_num_mean end actual_num_cov,
+
+a.actual_num_per_up+a.actual_num_iqr*1.5 actual_num_per_up_edge,
+
+a.actual_num_per_down-a.actual_num_iqr*1.5 actual_num_per_down_edge
+
+from temp a
+
+left join temp_gen_parametric_measure_cell b on a.item=b.item and a.operation=b.operation and a.measure_name=b.measure_name and a.天或7天=b.test_date_time
+
+--group by item,operation,measure_name,天或7天,空间统计维度,时间统计维度
+
+--order by 天或7天
+
+distributed BY (item,天或7天,operation,measure_name);
+
+
+drop table if exists sample_data_a;
+
+create temp table sample_data_a(value real,item varchar,operation varchar,measure_name varchar,空间统计维度 varchar,时间统计维度 varchar,天或7天 varchar);
+
+insert into sample_data_a(value,item,operation,measure_name,空间统计维度,时间统计维度,天或7天) 
+
+select actual_num, item,operation,measure_name,空间统计维度,时间统计维度,天或7天
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_a;
+
+create or replace function calculate_statistics_a()
+
+returns void as
+
+$$
+
+declare
+
+        sample_count integer;
+
+        mean real;
+
+        variance real;
+
+        stddev real;
+
+        lower_bound real;
+
+        upper_bound real;
+
+        outliers integer;
+
+        threshold real:=5;
+
+begin
+
+        while true loop
+
+                select count(value),avg(value) avg_value,var_pop(value) variance into sample_count,mean,variance from sample_data_a;
+
+                stddev :=sqrt(variance);
+
+                lower_bound :=mean - threshold * stddev;
+
+                upper_bound :=mean + threshold * stddev;
+
+                select count(value) into outliers from sample_data_a where value <lower_bound or value> upper_bound;
+
+                delete from sample_data_a where value <lower_bound or value > upper_bound;
+
+                if outliers = 0 then
+
+                        EXIT;
+
+                end if;
+
+                --threshold :=5;
+
+        end loop;
+
+end;
+
+$$ LANGUAGE plpgsql;
+
+
+select calculate_statistics_a();
+
+
+--select * from sample_data
+
+
+drop table if exists sample_data_avg_stddev_a;
+
+CREATE temp TABLE sample_data_avg_stddev_a with(appendonly=true,compresstype=zstd) as
+
+with a as(select item,operation,measure_name,空间统计维度,时间统计维度,天或7天,
+
+avg(b.value) avg_value,
+
+stddev(b.value) stddev_value 
+
+from sample_data_a b group by item,operation,measure_name,空间统计维度,时间统计维度,天或7天
+
+)select item,operation,measure_name,空间统计维度,时间统计维度,天或7天,
+
+avg_value-4*stddev_value lower_line,avg_value+4*stddev_value upper_line from a
+
+group by item,operation,measure_name,空间统计维度,时间统计维度,天或7天,avg_value,stddev_value;  
+
+
+
+drop table if exists temp_sandian_a;
+
+CREATE temp TABLE temp_sandian_a with(appendonly=true,compresstype=zstd) as
+
+with a as(select b.actual_num,
+
+b.item,
+
+b.operation,
+
+b.measure_name,
+
+b.空间统计维度,b.时间统计维度,
+
+b.天或7天,
+
+a.lower_line,
+
+a.upper_line 
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_a b
+
+left join sample_data_avg_stddev_a a
+
+on a.item=b.item and a.operation=b.operation and a.measure_name=b.measure_name and a.空间统计维度=b.空间统计维度 and
+
+a.时间统计维度=b.时间统计维度 and a.天或7天=b.天或7天)
+
+select coalesce(actual_num,0) actual_num,coalesce(item,'') item,coalesce(operation,'') operation,coalesce(measure_name,'') measure_name,
+
+coalesce(空间统计维度,'') 空间统计维度,coalesce(时间统计维度,'') 时间统计维度,lower_line,
+
+upper_line
+
+from a;
+
+
+delete from temp_sandian_a a
+
+where a.actual_num>=a.lower_line and a.actual_num <=a.upper_line;
+
+
+--select * from temp_sandian_a
+
+
+drop table if exists temp_sandian_all_a;
+
+CREATE temp TABLE temp_sandian_all_a with(appendonly=true,compresstype=zstd) as
+
+select distinct a.actual_num,a.item,a.operation,a.measure_name,a.空间统计维度,a.时间统计维度,--b.lower_line,b.upper_line,
+
+case when b.lower_line is not null and b.upper_line is not null then 
+
+count(a.item)over(partition by a.item,a.operation,a.measure_name,a.空间统计维度,a.时间统计维度) else 0 end as sandian_num
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_a a
+
+left join temp_sandian_a b on a.actual_num=b.actual_num and a.item=b.item and a.operation=b.operation and a.measure_name=b.measure_name
+
+group by a.actual_num,a.item,a.operation,a.measure_name,a.空间统计维度,a.时间统计维度,b.lower_line,b.upper_line;
+
+
+--select * from temp_sandian_all_a a
+
+
+drop table if exists temp_gen_parametric_measure_cell_tsocv_per_day_a_1;
+
+CREATE temp TABLE temp_gen_parametric_measure_cell_tsocv_per_day_a_1 with(appendonly=true,compresstype=zstd) as
+
+select b.*
+
+,a.sandian_num 
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_a b 
+
+left join temp_sandian_all_a a on a.actual_num=b.actual_num and 
+
+a.item=b.item and a.operation=b.operation 
+
+and a.measure_name=b.measure_name and a.空间统计维度=b.空间统计维度 and a.时间统计维度=b.时间统计维度;
+
+
+----产品PN+工序+同工序下参数代码 --第1种
+
+DROP TABLE IF EXISTS temp_gen_parametric_measure_cell_tsocv_per_day_T1;
+
+CREATE temp TABLE temp_gen_parametric_measure_cell_tsocv_per_day_T1 with(appendonly=true,compresstype=zstd) as
+
+select distinct a.*,b.actual_num_outlier
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_a_1 a 
+
+left join
+
+(
+
+select item,operation,measure_name,test_date_time,plant,sfc,site,line,resrce,actual_num,
+
+string_agg(distinct actual_num||'',',') actual_num_outlier
+
+from temp_gen_parametric_measure_cell a 
+
+where exists (select 1 from temp_gen_parametric_measure_cell_tsocv_per_day_a_1 b where a.item=b.item and a.test_date_time=b.天或7天
+
+and a.operation=b.operation and a.measure_name=b.measure_name and a.plant=b.plant and a.sfc=b.sfc
+
+and a.site=b.site and a.line=b.line and a.resrce=b.resrce and a.actual_num=b.actual_num
+
+and (a.actual_num>b.actual_num_per_up_edge or a.actual_num<b.actual_num_per_down_edge)
+
+)
+
+group by item,operation,measure_name,test_date_time,plant,sfc,site,line,resrce,actual_num
+
+) b on a.item=b.item and a.operation=b.operation and a.measure_name=b.measure_name and a.天或7天=b.test_date_time and a.plant=b.plant and a.sfc=b.sfc 
+
+and a.site=b.site and a.line=b.line and a.resrce=b.resrce and a.actual_num=b.actual_num
+
+distributed BY (item,天或7天,operation,measure_name);
+
+
+
+DROP TABLE IF EXISTS temp_gen_parametric_measure_cell_tsocv_per_day_b;
+
+CREATE temp TABLE temp_gen_parametric_measure_cell_tsocv_per_day_b with(appendonly=true,compresstype=zstd) as
+
+with temp as(
+
+select item,
+
+--sfc,site,
+
+line,
+
+--resrce,
+
+operation,measure_name,
+
+--actual_num,
+
+'产品PN+拉线+工序+同工序下参数代码' 空间统计维度,'天' 时间统计维度,test_date_time 天或7天,
+
+avg(actual_num) actual_num_mean,
+
+stddev(actual_num) actual_num_sigma,
+
+percentile_disc(0.75) within group(order by actual_num) actual_num_per_up,
+
+percentile_disc(0.25) within group(order by actual_num) actual_num_per_down,
+
+percentile_disc(0.5) within group(order by actual_num) actual_num_per_middle,
+
+percentile_disc(0.75) within group(order by actual_num)-percentile_disc(0.25) within group(order by actual_num) actual_num_iqr,
+
+string_agg(distinct actual_num||'',',') actual_num_group
+
+from temp_gen_parametric_measure_cell
+
+group by item,operation,measure_name,line,
+
+天或7天-- ,sfc,site,line,resrce,operation,measure_name,actual_num
+
+---order by 天或7天
+
+)
+
+select a.*,b.plant,b.sfc,b.site,b.resrce,b.actual_num,
+
+case when actual_num_mean=0 then 0 else actual_num_sigma/actual_num_mean end actual_num_cov,
+
+a.actual_num_per_up+a.actual_num_iqr*1.5 actual_num_per_up_edge,
+
+a.actual_num_per_down-a.actual_num_iqr*1.5 actual_num_per_down_edge
+
+from temp a
+
+left join temp_gen_parametric_measure_cell b on a.item=b.item and a.operation=b.operation and a.measure_name=b.measure_name and a.天或7天=b.test_date_time and a.line=b.line
+
+--group by item,operation,measure_name,天或7天,空间统计维度,时间统计维度
+
+--order by 天或7天
+
+distributed BY (item,天或7天,operation,measure_name,line);
+
+
+drop table if exists sample_data_b;
+
+create temp table sample_data_b(value real,item varchar,line varchar,
+
+operation varchar,measure_name varchar,空间统计维度 varchar,时间统计维度 varchar,天或7天 varchar);
+
+insert into sample_data_b(value,item,line,operation,measure_name,空间统计维度,时间统计维度,天或7天) 
+
+select actual_num,item,line,operation,measure_name,空间统计维度,时间统计维度,天或7天
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_b;
+
+create or replace function calculate_statistics_b()
+
+returns void as
+
+$$
+
+declare
+
+        sample_count integer;
+
+        mean real;
+
+        variance real;
+
+        stddev real;
+
+        lower_bound real;
+
+        upper_bound real;
+
+        outliers integer;
+
+        threshold real:=5;
+
+begin
+
+        while true loop
+
+                select count(value),avg(value) avg_value,var_pop(value) variance into sample_count,mean,variance from sample_data_b;
+
+                stddev :=sqrt(variance);
+
+                lower_bound :=mean - threshold * stddev;
+
+                upper_bound :=mean + threshold * stddev;
+
+                select count(value) into outliers from sample_data_b where value <lower_bound or value> upper_bound;
+
+                delete from sample_data_b where value <lower_bound or value > upper_bound;
+
+                if outliers = 0 then
+
+                        EXIT;
+
+                end if;
+
+                --threshold :=5;
+
+        end loop;
+
+end;
+
+$$ LANGUAGE plpgsql;
+
+
+select calculate_statistics_b(); --select * from sample_data_b
+
+
+drop table if exists sample_data_avg_stddev_b;
+
+CREATE temp TABLE sample_data_avg_stddev_b with(appendonly=true,compresstype=zstd) as
+
+with a as(select item,line,operation,measure_name,空间统计维度,时间统计维度,天或7天,
+
+avg(b.value) avg_value,
+
+stddev(b.value) stddev_value 
+
+from sample_data_b b group by item,line,operation,measure_name,空间统计维度,时间统计维度,天或7天
+
+)select item,line,operation,measure_name,空间统计维度,时间统计维度,天或7天,
+
+avg_value-4*stddev_value lower_line,avg_value+4*stddev_value upper_line from a
+
+group by item,line,operation,measure_name,空间统计维度,时间统计维度,天或7天,avg_value,stddev_value;  
+
+
+
+drop table if exists temp_sandian_b;
+
+CREATE temp TABLE temp_sandian_b with(appendonly=true,compresstype=zstd) as
+
+with a as(select b.actual_num,
+
+b.item,
+
+b.line,
+
+b.operation,
+
+b.measure_name,
+
+b.空间统计维度,b.时间统计维度,
+
+b.天或7天,
+
+a.lower_line,
+
+a.upper_line 
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_b b
+
+left join sample_data_avg_stddev_b a
+
+on a.item=b.item and a.line=b.line and a.operation=b.operation and a.measure_name=b.measure_name and a.空间统计维度=b.空间统计维度 and
+
+a.时间统计维度=b.时间统计维度 and a.天或7天=b.天或7天)
+
+select coalesce(actual_num,0) actual_num,coalesce(item,'') item,coalesce(line,'') line,coalesce(operation,'') operation,coalesce(measure_name,'') measure_name,
+
+coalesce(空间统计维度,'') 空间统计维度,coalesce(时间统计维度,'') 时间统计维度,lower_line,
+
+upper_line
+
+from a;
+
+
+delete from temp_sandian_b a
+
+where a.actual_num>=a.lower_line and a.actual_num <=a.upper_line;
+
+
+
+drop table if exists temp_sandian_all_b;
+
+CREATE temp TABLE temp_sandian_all_b with(appendonly=true,compresstype=zstd) as
+
+select distinct a.actual_num,a.item,a.line,a.operation,a.measure_name,a.空间统计维度,a.时间统计维度,--b.lower_line,b.upper_line,
+
+case when b.lower_line is not null and b.upper_line is not null then count(a.actual_num) over(partition by a.item,a.line,a.operation,a.measure_name,
+
+a.空间统计维度,a.时间统计维度) else 0 end as sandian_num
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_b a
+
+left join temp_sandian_b b on a.actual_num=b.actual_num and a.item=b.item and a.operation=b.operation and a.measure_name=b.measure_name and a.line=b.line
+
+group by a.actual_num,a.item,a.line,a.operation,a.measure_name,a.空间统计维度,a.时间统计维度,b.lower_line,b.upper_line;
+
+
+
+drop table if exists temp_gen_parametric_measure_cell_tsocv_per_day_b_1;
+
+CREATE temp TABLE temp_gen_parametric_measure_cell_tsocv_per_day_b_1 with(appendonly=true,compresstype=zstd) as
+
+select b.*
+
+,a.sandian_num 
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_b b 
+
+left join temp_sandian_all_b a on a.actual_num=b.actual_num and
+
+a.item=b.item and a.operation=b.operation and a.line=b.line 
+
+and a.measure_name=b.measure_name and a.空间统计维度=b.空间统计维度 and a.时间统计维度=b.时间统计维度;
+
+
+----产品PN+拉线+工序+同工序下参数代码 --第2种
+
+DROP TABLE IF EXISTS temp_gen_parametric_measure_cell_tsocv_per_day_T2;
+
+CREATE temp TABLE temp_gen_parametric_measure_cell_tsocv_per_day_T2 with(appendonly=true,compresstype=zstd) as
+
+select distinct a.*,b.actual_num_outlier
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_b_1 a 
+
+left join
+
+(
+
+select item,operation,measure_name,test_date_time,line,string_agg(distinct actual_num||'',',') actual_num_outlier
+
+from temp_gen_parametric_measure_cell a 
+
+where exists (select 1 from temp_gen_parametric_measure_cell_tsocv_per_day_b b where a.item=b.item and a.test_date_time=b.天或7天
+
+and a.operation=b.operation and a.measure_name=b.measure_name and a.plant=b.plant and a.sfc=b.sfc
+
+and a.site=b.site and a.line=b.line and a.resrce=b.resrce and a.actual_num=b.actual_num
+
+and (a.actual_num>b.actual_num_per_up_edge or a.actual_num<b.actual_num_per_down_edge)
+
+)group by item,operation,measure_name,test_date_time,line
+
+) b on a.item=b.item and a.operation=b.operation and a.measure_name=b.measure_name and a.天或7天=b.test_date_time and a.line=b.line
+
+distributed BY (item,line,天或7天,operation,measure_name);
+
+
+
+DROP TABLE IF EXISTS temp_gen_parametric_measure_cell_tsocv_per_day_c;
+
+CREATE temp TABLE temp_gen_parametric_measure_cell_tsocv_per_day_c with(appendonly=true,compresstype=zstd) as
+
+with temp as(
+
+select item,
+
+--sfc,site,
+
+--line,
+
+resrce,
+
+operation,measure_name,
+
+--actual_num,
+
+'产品PN+工序+同工序下资源编号+同工序下参数代码' 空间统计维度,'天' 时间统计维度,test_date_time 天或7天,
+
+avg(actual_num) actual_num_mean,
+
+stddev(actual_num) actual_num_sigma,
+
+percentile_disc(0.75) within group(order by actual_num) actual_num_per_up,
+
+percentile_disc(0.25) within group(order by actual_num) actual_num_per_down,
+
+percentile_disc(0.5) within group(order by actual_num) actual_num_per_middle,
+
+percentile_disc(0.75) within group(order by actual_num)-percentile_disc(0.25) within group(order by actual_num) actual_num_iqr,
+
+string_agg(distinct actual_num||'',',') actual_num_group
+
+from temp_gen_parametric_measure_cell
+
+group by item,operation,measure_name,resrce,
+
+天或7天-- ,sfc,site,line,resrce,operation,measure_name,actual_num
+
+---order by 天或7天
+
+)
+
+select a.*,b.plant,b.sfc,b.site,b.actual_num,b.line,
+
+case when actual_num_mean=0 then 0 else actual_num_sigma/actual_num_mean end actual_num_cov,
+
+a.actual_num_per_up+a.actual_num_iqr*1.5 actual_num_per_up_edge,
+
+a.actual_num_per_down-a.actual_num_iqr*1.5 actual_num_per_down_edge
+
+from temp a
+
+left join temp_gen_parametric_measure_cell b on a.item=b.item and a.operation=b.operation and a.measure_name=b.measure_name and a.天或7天=b.test_date_time and a.resrce=b.resrce
+
+--group by item,operation,measure_name,天或7天,空间统计维度,时间统计维度
+
+--order by 天或7天
+
+distributed BY (item,天或7天,operation,measure_name,resrce);
+
+
+drop table if exists sample_data_c;
+
+create temp table sample_data_c(value real,item varchar,resrce varchar,
+
+operation varchar,measure_name varchar,空间统计维度 varchar,时间统计维度 varchar,天或7天 varchar);
+
+insert into sample_data_c(value,item,resrce,operation,measure_name,空间统计维度,时间统计维度,天或7天) 
+
+select actual_num,item,resrce,operation,measure_name,空间统计维度,时间统计维度,天或7天
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_c;
+
+create or replace function calculate_statistics_c()
+
+returns void as
+
+$$
+
+declare
+
+        sample_count integer;
+
+        mean real;
+
+        variance real;
+
+        stddev real;
+
+        lower_bound real;
+
+        upper_bound real;
+
+        outliers integer;
+
+        threshold real:=5;
+
+begin
+
+        while true loop
+
+                select count(value),avg(value) avg_value,var_pop(value) variance into sample_count,mean,variance from sample_data_c;
+
+                stddev :=sqrt(variance);
+
+                lower_bound :=mean - threshold * stddev;
+
+                upper_bound :=mean + threshold * stddev;
+
+                select count(value) into outliers from sample_data_c where value <lower_bound or value> upper_bound;
+
+                delete from sample_data_c where value <lower_bound or value > upper_bound;
+
+                if outliers = 0 then
+
+                        EXIT;
+
+                end if;
+
+                --threshold :=5;
+
+        end loop;
+
+end;
+
+$$ LANGUAGE plpgsql;
+
+
+select calculate_statistics_c(); --select * from sample_data_b
+
+
+drop table if exists sample_data_avg_stddev_c;
+
+CREATE temp TABLE sample_data_avg_stddev_c with(appendonly=true,compresstype=zstd) as
+
+with a as(select item,resrce,operation,measure_name,空间统计维度,时间统计维度,天或7天,
+
+avg(b.value) avg_value,
+
+stddev(b.value) stddev_value 
+
+from sample_data_c b group by item,resrce,operation,measure_name,空间统计维度,时间统计维度,天或7天
+
+)select item,resrce,operation,measure_name,空间统计维度,时间统计维度,天或7天,
+
+avg_value-4*stddev_value lower_line,avg_value+4*stddev_value upper_line from a
+
+group by item,resrce,operation,measure_name,空间统计维度,时间统计维度,天或7天,avg_value,stddev_value;  
+
+
+
+drop table if exists temp_sandian_c;
+
+CREATE temp TABLE temp_sandian_c with(appendonly=true,compresstype=zstd) as
+
+with a as(select b.actual_num,
+
+b.item,
+
+b.resrce,
+
+b.operation,
+
+b.measure_name,
+
+b.空间统计维度,b.时间统计维度,
+
+b.天或7天,
+
+a.lower_line,
+
+a.upper_line 
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_c b
+
+left join sample_data_avg_stddev_c a
+
+on a.item=b.item and a.resrce=b.resrce and a.operation=b.operation and a.measure_name=b.measure_name and a.空间统计维度=b.空间统计维度 and
+
+a.时间统计维度=b.时间统计维度 and a.天或7天=b.天或7天)
+
+select coalesce(actual_num,0) actual_num,coalesce(item,'') item,coalesce(resrce,'') resrce,coalesce(operation,'') operation,coalesce(measure_name,'') measure_name,
+
+coalesce(空间统计维度,'') 空间统计维度,coalesce(时间统计维度,'') 时间统计维度,lower_line,
+
+upper_line
+
+from a;
+
+
+delete from temp_sandian_c a
+
+where a.actual_num>=a.lower_line and a.actual_num <=a.upper_line;
+
+
+
+drop table if exists temp_sandian_all_c;
+
+CREATE temp TABLE temp_sandian_all_c with(appendonly=true,compresstype=zstd) as
+
+select distinct a.actual_num,a.item,a.resrce,a.operation,a.measure_name,a.空间统计维度,a.时间统计维度,--b.lower_line,b.upper_line,
+
+case when b.lower_line is not null and b.upper_line is not null then count(a.actual_num) over(partition by a.actual_num,a.item,a.resrce,a.operation,a.measure_name,
+
+a.空间统计维度,a.时间统计维度) else 0 end as sandian_num
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_c a
+
+left join temp_sandian_c b on a.actual_num=b.actual_num and a.item=b.item and a.operation=b.operation and a.measure_name=b.measure_name and a.resrce=b.resrce
+
+group by a.actual_num,a.item,a.resrce,a.operation,a.measure_name,a.空间统计维度,a.时间统计维度,b.lower_line,b.upper_line;
+
+
+
+drop table if exists temp_gen_parametric_measure_cell_tsocv_per_day_c_1;
+
+CREATE temp TABLE temp_gen_parametric_measure_cell_tsocv_per_day_c_1 with(appendonly=true,compresstype=zstd) as
+
+select b.*
+
+,a.sandian_num 
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_c b 
+
+left join temp_sandian_all_c a on a.actual_num=b.actual_num and
+
+a.item=b.item and a.operation=b.operation and a.resrce=b.resrce 
+
+and a.measure_name=b.measure_name and a.空间统计维度=b.空间统计维度 and a.时间统计维度=b.时间统计维度;
+
+
+----产品PN+工序+同工序下资源编号+同工序下参数代码--第三种
+
+DROP TABLE IF EXISTS temp_gen_parametric_measure_cell_tsocv_per_day_T3;
+
+CREATE temp TABLE temp_gen_parametric_measure_cell_tsocv_per_day_T3 with(appendonly=true,compresstype=zstd) as
+
+select distinct a.*,b.actual_num_outlier
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_c_1 a 
+
+left join
+
+(
+
+select item,operation,measure_name,test_date_time,resrce,string_agg(distinct actual_num||'',',') actual_num_outlier
+
+from temp_gen_parametric_measure_cell a 
+
+where exists (select 1 from temp_gen_parametric_measure_cell_tsocv_per_day_c_1 b where a.item=b.item and a.test_date_time=b.天或7天
+
+and a.operation=b.operation and a.measure_name=b.measure_name and a.plant=b.plant and a.sfc=b.sfc
+
+and a.site=b.site and a.item=b.item and a.resrce=b.resrce and a.actual_num=b.actual_num
+
+and (a.actual_num>b.actual_num_per_up_edge or a.actual_num<b.actual_num_per_down_edge)
+
+)
+
+group by item,operation,measure_name,test_date_time,resrce
+
+) b on a.item=b.item and a.operation=b.operation and a.measure_name=b.measure_name and a.天或7天=b.test_date_time and a.resrce=b.resrce
+
+distributed BY (item,天或7天,operation,measure_name,resrce);
+
+
+
+DROP TABLE IF EXISTS temp_gen_parametric_measure_cell_tsocv_per_day_d;
+
+CREATE temp TABLE temp_gen_parametric_measure_cell_tsocv_per_day_d with(appendonly=true,compresstype=zstd) as
+
+with temp as (
+
+select
+
+a.item,
+
+a.resrce,
+
+--operation,measure_name,
+
+'产品PN+工序+非同工序下资源编号+同工序下参数代码' 空间统计维度,'天' 时间统计维度,test_date_time 天或7天,
+
+avg(a.actual_num) actual_num_mean,
+
+stddev(a.actual_num) actual_num_sigma,
+
+percentile_disc(0.75) within group(order by a.actual_num) actual_num_per_up,
+
+percentile_disc(0.25) within group(order by a.actual_num) actual_num_per_down,
+
+percentile_disc(0.5) within group(order by a.actual_num) actual_num_per_middle,
+
+percentile_disc(0.75) within group(order by a.actual_num)-percentile_disc(0.25) within group(order by a.actual_num) actual_num_iqr,
+
+string_agg(distinct a.actual_num||'',',') actual_num_group
+
+from temp_gen_parametric_measure_cell a
+
+where sfc in(
+
+select sfc
+
+from temp_gen_parametric_measure_cell
+
+where actual_num in(
+
+select --operation,measure_name,
+
+actual_num
+
+from temp_gen_parametric_measure_cell
+
+where operation='TSOCV1' and
+
+measure_name='IMP'
+
+)
+
+)
+
+and operation='USWELD'
+
+group by item,test_date_time,resrce
+
+)
+
+select a.*,b.plant,b.sfc,b.site,b.line,b.actual_num,b.operation,b.measure_name,
+
+case when actual_num_mean=0 then 0 else actual_num_sigma/actual_num_mean end actual_num_cov,
+
+a.actual_num_per_up+a.actual_num_iqr*1.5 actual_num_per_up_edge,
+
+a.actual_num_per_down-a.actual_num_iqr*1.5 actual_num_per_down_edge
+
+from temp a
+
+left join temp_gen_parametric_measure_cell b on a.item=b.item  and a.天或7天=b.test_date_time and a.resrce=b.resrce
+
+--group by item,operation,measure_name,天或7天,空间统计维度,时间统计维度
+
+--order by 天或7天
+
+distributed BY (item,天或7天,resrce);
+
+
+drop table if exists sample_data_d;
+
+create temp table sample_data_d(value real,item varchar,resrce varchar,
+
+operation varchar,measure_name varchar,空间统计维度 varchar,时间统计维度 varchar,天或7天 varchar);
+
+insert into sample_data_d(value,item,resrce,operation,measure_name,空间统计维度,时间统计维度,天或7天) 
+
+select actual_num,item,resrce,operation,measure_name,空间统计维度,时间统计维度,天或7天
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_d;
+
+create or replace function calculate_statistics_d()
+
+returns void as
+
+$$
+
+declare
+
+        sample_count integer;
+
+        mean real;
+
+        variance real;
+
+        stddev real;
+
+        lower_bound real;
+
+        upper_bound real;
+
+        outliers integer;
+
+        threshold real:=5;
+
+begin
+
+        while true loop
+
+                select count(value),avg(value) avg_value,var_pop(value) variance into sample_count,mean,variance from sample_data_d;
+
+                stddev :=sqrt(variance);
+
+                lower_bound :=mean - threshold * stddev;
+
+                upper_bound :=mean + threshold * stddev;
+
+                select count(value) into outliers from sample_data_d where value <lower_bound or value> upper_bound;
+
+                delete from sample_data_d where value <lower_bound or value > upper_bound;
+
+                if outliers = 0 then
+
+                        EXIT;
+
+                end if;
+
+                --threshold :=5;
+
+        end loop;
+
+end;
+
+$$ LANGUAGE plpgsql;
+
+
+select calculate_statistics_d(); --select * from sample_data_d
+
+
+drop table if exists sample_data_avg_stddev_d;
+
+CREATE temp TABLE sample_data_avg_stddev_d with(appendonly=true,compresstype=zstd) as
+
+with a as(select item,resrce,operation,measure_name,空间统计维度,时间统计维度,天或7天,
+
+avg(b.value) avg_value,
+
+stddev(b.value) stddev_value 
+
+from sample_data_d b group by item,resrce,operation,measure_name,空间统计维度,时间统计维度,天或7天
+
+)select item,resrce,operation,measure_name,空间统计维度,时间统计维度,天或7天,
+
+avg_value-4*stddev_value lower_line,avg_value+4*stddev_value upper_line from a
+
+group by item,resrce,operation,measure_name,空间统计维度,时间统计维度,天或7天,avg_value,stddev_value;  
+
+
+
+drop table if exists temp_sandian_d;
+
+CREATE temp TABLE temp_sandian_d with(appendonly=true,compresstype=zstd) as
+
+with a as(select b.actual_num,
+
+b.item,
+
+b.resrce,
+
+b.operation,
+
+b.measure_name,
+
+b.空间统计维度,b.时间统计维度,
+
+b.天或7天,
+
+a.lower_line,
+
+a.upper_line 
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_d b
+
+left join sample_data_avg_stddev_d a
+
+on a.item=b.item and a.resrce=b.resrce and a.operation=b.operation and a.measure_name=b.measure_name and a.空间统计维度=b.空间统计维度 and
+
+a.时间统计维度=b.时间统计维度 and a.天或7天=b.天或7天)
+
+select coalesce(actual_num,0) actual_num,coalesce(item,'') item,coalesce(resrce,'') resrce,coalesce(operation,'') operation,coalesce(measure_name,'') measure_name,
+
+coalesce(空间统计维度,'') 空间统计维度,coalesce(时间统计维度,'') 时间统计维度,lower_line,
+
+upper_line
+
+from a;
+
+
+delete from temp_sandian_d a
+
+where a.actual_num>=a.lower_line and a.actual_num <=a.upper_line; --select * from temp_sandian_d --select * from temp_sandian_c --select * from temp_sandian_a --select * from temp_sandian_b
+
+
+
+drop table if exists temp_sandian_all_d;
+
+CREATE temp TABLE temp_sandian_all_d with(appendonly=true,compresstype=zstd) as
+
+select distinct a.actual_num,a.item,a.resrce,a.operation,a.measure_name,a.空间统计维度,a.时间统计维度,--b.lower_line,b.upper_line,
+
+case when b.lower_line is not null and b.upper_line is not null then count(a.actual_num) over(partition by a.actual_num,a.item,a.resrce,a.operation,a.measure_name,
+
+a.空间统计维度,a.时间统计维度) else 0 end as sandian_num
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_d a
+
+left join temp_sandian_d b on a.actual_num=b.actual_num and a.item=b.item and a.operation=b.operation and a.measure_name=b.measure_name and a.resrce=b.resrce
+
+group by a.actual_num,a.item,a.resrce,a.operation,a.measure_name,a.空间统计维度,a.时间统计维度,b.lower_line,b.upper_line;
+
+
+
+drop table if exists temp_gen_parametric_measure_cell_tsocv_per_day_d_1;
+
+CREATE temp TABLE temp_gen_parametric_measure_cell_tsocv_per_day_d_1 with(appendonly=true,compresstype=zstd) as
+
+select b.*
+
+,a.sandian_num 
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_d b 
+
+left join temp_sandian_all_d a on a.actual_num=b.actual_num and
+
+a.item=b.item and a.operation=b.operation and a.resrce=b.resrce 
+
+and a.measure_name=b.measure_name and a.空间统计维度=b.空间统计维度 and a.时间统计维度=b.时间统计维度;
+
+
+----产品PN+工序+非同工序下资源编号+同工序下参数代码--第四种
+
+DROP TABLE IF EXISTS temp_gen_parametric_measure_cell_tsocv_per_day_T4;
+
+CREATE TEMP TABLE temp_gen_parametric_measure_cell_tsocv_per_day_T4 with(appendonly=true,compresstype=zstd) as
+
+select distinct a.*,b.actual_num_outlier
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_d_1 a 
+
+left join
+
+(
+
+select item,operation,measure_name,test_date_time,resrce,string_agg(distinct actual_num||'',',') actual_num_outlier
+
+from temp_gen_parametric_measure_cell a 
+
+where exists (select 1 from temp_gen_parametric_measure_cell_tsocv_per_day_d_1 b where a.item=b.item and a.test_date_time=b.天或7天
+
+and a.operation=b.operation and a.measure_name=b.measure_name and a.plant=b.plant and a.sfc=b.sfc
+
+and a.site=b.site and a.item=b.item and a.resrce=b.resrce and a.actual_num=b.actual_num
+
+and (a.actual_num>b.actual_num_per_up_edge or a.actual_num<b.actual_num_per_down_edge)
+
+)
+
+group by item,operation,measure_name,test_date_time,resrce
+
+) b on a.item=b.item and a.operation=b.operation and a.measure_name=b.measure_name and a.天或7天=b.test_date_time and a.resrce=b.resrce
+
+distributed BY (item,天或7天,resrce);
+
+
+DROP TABLE IF EXISTS temp_gen_parametric_measure_cell_tsocv_per_day_ALL;
+
+CREATE TEMP TABLE temp_gen_parametric_measure_cell_tsocv_per_day_ALL with(appendonly=true,compresstype=zstd) as
+
+select item,site,plant,line,operation,resrce,measure_name,空间统计维度,时间统计维度,actual_num_mean,actual_num_sigma,actual_num_cov,
+
+sandian_num,actual_num_iqr,actual_num_per_up_edge,actual_num_per_down_edge,actual_num_per_up,actual_num_per_down,actual_num_per_middle,actual_num_outlier
+
+sfc from temp_gen_parametric_measure_cell_tsocv_per_day_T1
+
+union all
+
+select item,site,plant,line,operation,resrce,measure_name,空间统计维度,时间统计维度,actual_num_mean,actual_num_sigma,actual_num_cov,
+
+sandian_num,actual_num_iqr,actual_num_per_up_edge,actual_num_per_down_edge,actual_num_per_up,actual_num_per_down,actual_num_per_middle,actual_num_outlier
+
+sfc  from temp_gen_parametric_measure_cell_tsocv_per_day_T2
+
+union all 
+
+select item,site,plant,line,operation,resrce,measure_name,空间统计维度,时间统计维度,actual_num_mean,actual_num_sigma,actual_num_cov,
+
+sandian_num,actual_num_iqr,actual_num_per_up_edge,actual_num_per_down_edge,actual_num_per_up,actual_num_per_down,actual_num_per_middle,actual_num_outlier
+
+sfc from temp_gen_parametric_measure_cell_tsocv_per_day_T3
+
+union all
+
+select item,site,plant,line,operation,resrce,measure_name,空间统计维度,时间统计维度,actual_num_mean,actual_num_sigma,actual_num_cov,
+
+sandian_num,actual_num_iqr,actual_num_per_up_edge,actual_num_per_down_edge,actual_num_per_up,actual_num_per_down,actual_num_per_middle,actual_num_outlier
+
+sfc from temp_gen_parametric_measure_cell_tsocv_per_day_T4;
+
+
+--select * from temp_gen_parametric_measure_cell_tsocv_per_day_ALL;-----------------------
+
+
+DROP TABLE IF EXISTS temp_gen_parametric_measure_cell_1;
+
+CREATE temp TABLE temp_gen_parametric_measure_cell_1 with(appendonly=true,compresstype=zstd) as
+
+select distinct coalesce(plant,'') plant,
+
+coalesce(sfc,'') sfc,coalesce(site,'') site,coalesce(item,'') item,
+
+coalesce(line,'') line,
+
+coalesce(resrce,'') resrce,
+
+coalesce(measure_name,'') measure_name,
+
+coalesce(operation,'') operation,
+
+coalesce(actual_num,0) actual_num,
+
+to_char(test_date_time::DATE-(extract(dow from test_date_time::TIMESTAMP)-1||'day')::interval, 'YYYY-mm-dd')||'为周一开始的一周' test_date_time 
+
+--该字段统计的是周一到周日在举例数据范围20221107属于第二周 字段展示的是每周一代表整个周  --select * from temp_gen_parametric_measure_cell where test_date_time='2022-11-07'
+
+--to_char(test_date_time,'yyyyMM') test_date_time
+
+from  gen.gen_parametric_measure_cell
+
+where test_date_time>='2022-11-01 0:00' and test_date_time<='2022-11-08 0:00'
+
+--test_date_time>='2022-11-01 0:00' and test_date_time<='2022-11-01 0:05'
+
+--and data_source='n2p_wip' and test_passed='true' and site='2001'--and actual_num=0
+
+distributed BY (sfc,site,item,line,operation,resrce,test_date_time);  --select * from temp_gen_parametric_measure_cell where item is null
+
+
+--select * from gen.gen_parametric_measure_cell
+
+DROP TABLE IF EXISTS temp_gen_parametric_measure_cell_tsocv_per_day_a_A; --select * from temp_gen_parametric_measure_cell_tsocv_per_day_a
+
+CREATE temp TABLE temp_gen_parametric_measure_cell_tsocv_per_day_a_A with(appendonly=true,compresstype=zstd) as
+
+with temp as(
+
+select item,
+
+--sfc,site,line,resrce,
+
+operation,measure_name,
+
+--actual_num,
+
+'产品PN+工序+同工序下参数代码' 空间统计维度,'周' 时间统计维度,test_date_time 天或7天,
+
+avg(actual_num) actual_num_mean,
+
+stddev(actual_num) actual_num_sigma,
+
+percentile_disc(0.75) within group(order by actual_num) actual_num_per_up,
+
+percentile_disc(0.25) within group(order by actual_num) actual_num_per_down,
+
+percentile_disc(0.5) within group(order by actual_num) actual_num_per_middle,
+
+percentile_disc(0.75) within group(order by actual_num)-percentile_disc(0.25) within group(order by actual_num) actual_num_iqr,
+
+string_agg(distinct actual_num||'',',') actual_num_group
+
+from temp_gen_parametric_measure_cell_1
+
+group by item,operation,measure_name,
+
+天或7天-- ,sfc,site,line,resrce,operation,measure_name,actual_num
+
+---order by 天或7天
+
+)
+
+select a.*,b.plant,b.sfc,b.site,b.line,b.resrce,b.actual_num,
+
+case when actual_num_mean=0 then 0 else actual_num_sigma/actual_num_mean end actual_num_cov,
+
+a.actual_num_per_up+a.actual_num_iqr*1.5 actual_num_per_up_edge,
+
+a.actual_num_per_down-a.actual_num_iqr*1.5 actual_num_per_down_edge
+
+from temp a
+
+left join temp_gen_parametric_measure_cell_1 b on a.item=b.item and a.operation=b.operation and a.measure_name=b.measure_name and a.天或7天=b.test_date_time
+
+--group by item,operation,measure_name,天或7天,空间统计维度,时间统计维度
+
+--order by 天或7天
+
+distributed BY (item,天或7天,operation,measure_name);
+
+
+drop table if exists sample_data_a_A;
+
+create temp table sample_data_a_A(value real,item varchar,operation varchar,measure_name varchar,空间统计维度 varchar,时间统计维度 varchar,天或7天 varchar);
+
+insert into sample_data_a_A(value,item,operation,measure_name,空间统计维度,时间统计维度,天或7天) 
+
+select actual_num, item,operation,measure_name,空间统计维度,时间统计维度,天或7天
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_a_A;
+
+create or replace function calculate_statistics_a_A()
+
+returns void as
+
+$$
+
+declare
+
+        sample_count integer;
+
+        mean real;
+
+        variance real;
+
+        stddev real;
+
+        lower_bound real;
+
+        upper_bound real;
+
+        outliers integer;
+
+        threshold real:=5;
+
+begin
+
+        while true loop
+
+                select count(value),avg(value) avg_value,var_pop(value) variance into sample_count,mean,variance from sample_data_a_A;
+
+                stddev :=sqrt(variance);
+
+                lower_bound :=mean - threshold * stddev;
+
+                upper_bound :=mean + threshold * stddev;
+
+                select count(value) into outliers from sample_data_a_A where value <lower_bound or value> upper_bound;
+
+                delete from sample_data_a_A where value <lower_bound or value > upper_bound;
+
+                if outliers = 0 then
+
+                        EXIT;
+
+                end if;
+
+                --threshold :=5;
+
+        end loop;
+
+end;
+
+$$ LANGUAGE plpgsql;
+
+
+select calculate_statistics_a_A();
+
+
+--select * from sample_data
+
+
+drop table if exists sample_data_avg_stddev_a_A;
+
+CREATE temp TABLE sample_data_avg_stddev_a_A with(appendonly=true,compresstype=zstd) as
+
+with a as(select item,operation,measure_name,空间统计维度,时间统计维度,天或7天,
+
+avg(b.value) avg_value,
+
+stddev(b.value) stddev_value 
+
+from sample_data_a_A b group by item,operation,measure_name,空间统计维度,时间统计维度,天或7天
+
+)select item,operation,measure_name,空间统计维度,时间统计维度,天或7天,
+
+avg_value-4*stddev_value lower_line,avg_value+4*stddev_value upper_line from a
+
+group by item,operation,measure_name,空间统计维度,时间统计维度,天或7天,avg_value,stddev_value;  
+
+
+
+drop table if exists temp_sandian_a_A;
+
+CREATE temp TABLE temp_sandian_a_A with(appendonly=true,compresstype=zstd) as
+
+with a as(select b.actual_num,
+
+b.item,
+
+b.operation,
+
+b.measure_name,
+
+b.空间统计维度,b.时间统计维度,
+
+b.天或7天,
+
+a.lower_line,
+
+a.upper_line 
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_a_A b
+
+left join sample_data_avg_stddev_a_A a
+
+on a.item=b.item and a.operation=b.operation and a.measure_name=b.measure_name and a.空间统计维度=b.空间统计维度 and
+
+a.时间统计维度=b.时间统计维度 and a.天或7天=b.天或7天)
+
+select coalesce(actual_num,0) actual_num,coalesce(item,'') item,coalesce(operation,'') operation,coalesce(measure_name,'') measure_name,
+
+coalesce(空间统计维度,'') 空间统计维度,coalesce(时间统计维度,'') 时间统计维度,lower_line,
+
+upper_line
+
+from a;
+
+
+delete from temp_sandian_a_A a
+
+where a.actual_num>=a.lower_line and a.actual_num <=a.upper_line;
+
+
+--select * from temp_sandian_a
+
+
+drop table if exists temp_sandian_all_a_A;
+
+CREATE temp TABLE temp_sandian_all_a_A with(appendonly=true,compresstype=zstd) as
+
+select distinct a.actual_num,a.item,a.operation,a.measure_name,a.空间统计维度,a.时间统计维度,--b.lower_line,b.upper_line,
+
+case when b.lower_line is not null and b.upper_line is not null then 
+
+count(a.item)over(partition by a.item,a.operation,a.measure_name,a.空间统计维度,a.时间统计维度) else 0 end as sandian_num
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_a_A a
+
+left join temp_sandian_a_A b on a.actual_num=b.actual_num and a.item=b.item and a.operation=b.operation and a.measure_name=b.measure_name
+
+group by a.actual_num,a.item,a.operation,a.measure_name,a.空间统计维度,a.时间统计维度,b.lower_line,b.upper_line;
+
+
+--select * from temp_sandian_all_a a
+
+
+drop table if exists temp_gen_parametric_measure_cell_tsocv_per_day_a_1_A;
+
+CREATE temp TABLE temp_gen_parametric_measure_cell_tsocv_per_day_a_1_A with(appendonly=true,compresstype=zstd) as
+
+select b.*
+
+,a.sandian_num 
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_a_A b 
+
+left join temp_sandian_all_a_A a on a.actual_num=b.actual_num and 
+
+a.item=b.item and a.operation=b.operation 
+
+and a.measure_name=b.measure_name and a.空间统计维度=b.空间统计维度 and a.时间统计维度=b.时间统计维度;
+
+
+----产品PN+工序+同工序下参数代码 --第1种
+
+DROP TABLE IF EXISTS temp_gen_parametric_measure_cell_tsocv_per_day_T1_A;
+
+CREATE temp TABLE temp_gen_parametric_measure_cell_tsocv_per_day_T1_A with(appendonly=true,compresstype=zstd) as
+
+select distinct a.*,b.actual_num_outlier
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_a_1_A a 
+
+left join
+
+(
+
+select item,operation,measure_name,test_date_time,plant,sfc,site,line,resrce,actual_num,
+
+string_agg(distinct actual_num||'',',') actual_num_outlier
+
+from temp_gen_parametric_measure_cell_1 a 
+
+where exists (select 1 from temp_gen_parametric_measure_cell_tsocv_per_day_a_1_A b where a.item=b.item and a.test_date_time=b.天或7天
+
+and a.operation=b.operation and a.measure_name=b.measure_name and a.plant=b.plant and a.sfc=b.sfc
+
+and a.site=b.site and a.line=b.line and a.resrce=b.resrce and a.actual_num=b.actual_num
+
+and (a.actual_num>b.actual_num_per_up_edge or a.actual_num<b.actual_num_per_down_edge)
+
+)
+
+group by item,operation,measure_name,test_date_time,plant,sfc,site,line,resrce,actual_num
+
+) b on a.item=b.item and a.operation=b.operation and a.measure_name=b.measure_name and a.天或7天=b.test_date_time and a.plant=b.plant and a.sfc=b.sfc 
+
+and a.site=b.site and a.line=b.line and a.resrce=b.resrce and a.actual_num=b.actual_num
+
+distributed BY (item,天或7天,operation,measure_name);
+
+
+
+DROP TABLE IF EXISTS temp_gen_parametric_measure_cell_tsocv_per_day_b_A;
+
+CREATE temp TABLE temp_gen_parametric_measure_cell_tsocv_per_day_b_A with(appendonly=true,compresstype=zstd) as
+
+with temp as(
+
+select item,
+
+--sfc,site,
+
+line,
+
+--resrce,
+
+operation,measure_name,
+
+--actual_num,
+
+'产品PN+拉线+工序+同工序下参数代码' 空间统计维度,'周' 时间统计维度,test_date_time 天或7天,
+
+avg(actual_num) actual_num_mean,
+
+stddev(actual_num) actual_num_sigma,
+
+percentile_disc(0.75) within group(order by actual_num) actual_num_per_up,
+
+percentile_disc(0.25) within group(order by actual_num) actual_num_per_down,
+
+percentile_disc(0.5) within group(order by actual_num) actual_num_per_middle,
+
+percentile_disc(0.75) within group(order by actual_num)-percentile_disc(0.25) within group(order by actual_num) actual_num_iqr,
+
+string_agg(distinct actual_num||'',',') actual_num_group
+
+from temp_gen_parametric_measure_cell_1
+
+group by item,operation,measure_name,line,
+
+天或7天-- ,sfc,site,line,resrce,operation,measure_name,actual_num
+
+---order by 天或7天
+
+)
+
+select a.*,b.plant,b.sfc,b.site,b.resrce,b.actual_num,
+
+case when actual_num_mean=0 then 0 else actual_num_sigma/actual_num_mean end actual_num_cov,
+
+a.actual_num_per_up+a.actual_num_iqr*1.5 actual_num_per_up_edge,
+
+a.actual_num_per_down-a.actual_num_iqr*1.5 actual_num_per_down_edge
+
+from temp a
+
+left join temp_gen_parametric_measure_cell_1 b on a.item=b.item and a.operation=b.operation and a.measure_name=b.measure_name and a.天或7天=b.test_date_time and a.line=b.line
+
+--group by item,operation,measure_name,天或7天,空间统计维度,时间统计维度
+
+--order by 天或7天
+
+distributed BY (item,天或7天,operation,measure_name,line);
+
+
+drop table if exists sample_data_b_A;
+
+create temp table sample_data_b_A(value real,item varchar,line varchar,
+
+operation varchar,measure_name varchar,空间统计维度 varchar,时间统计维度 varchar,天或7天 varchar);
+
+insert into sample_data_b_A(value,item,line,operation,measure_name,空间统计维度,时间统计维度,天或7天) 
+
+select actual_num,item,line,operation,measure_name,空间统计维度,时间统计维度,天或7天
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_b_A;
+
+create or replace function calculate_statistics_b_A()
+
+returns void as
+
+$$
+
+declare
+
+        sample_count integer;
+
+        mean real;
+
+        variance real;
+
+        stddev real;
+
+        lower_bound real;
+
+        upper_bound real;
+
+        outliers integer;
+
+        threshold real:=5;
+
+begin
+
+        while true loop
+
+                select count(value),avg(value) avg_value,var_pop(value) variance into sample_count,mean,variance from sample_data_b_A;
+
+                stddev :=sqrt(variance);
+
+                lower_bound :=mean - threshold * stddev;
+
+                upper_bound :=mean + threshold * stddev;
+
+                select count(value) into outliers from sample_data_b_A where value <lower_bound or value> upper_bound;
+
+                delete from sample_data_b_A where value <lower_bound or value > upper_bound;
+
+                if outliers = 0 then
+
+                        EXIT;
+
+                end if;
+
+                --threshold :=5;
+
+        end loop;
+
+end;
+
+$$ LANGUAGE plpgsql;
+
+
+select calculate_statistics_b_A(); --select * from sample_data_b
+
+
+drop table if exists sample_data_avg_stddev_b_A;
+
+CREATE temp TABLE sample_data_avg_stddev_b_A with(appendonly=true,compresstype=zstd) as
+
+with a as(select item,line,operation,measure_name,空间统计维度,时间统计维度,天或7天,
+
+avg(b.value) avg_value,
+
+stddev(b.value) stddev_value 
+
+from sample_data_b_A b group by item,line,operation,measure_name,空间统计维度,时间统计维度,天或7天
+
+)select item,line,operation,measure_name,空间统计维度,时间统计维度,天或7天,
+
+avg_value-4*stddev_value lower_line,avg_value+4*stddev_value upper_line from a
+
+group by item,line,operation,measure_name,空间统计维度,时间统计维度,天或7天,avg_value,stddev_value;  
+
+
+
+drop table if exists temp_sandian_b_A;
+
+CREATE temp TABLE temp_sandian_b_A with(appendonly=true,compresstype=zstd) as
+
+with a as(select b.actual_num,
+
+b.item,
+
+b.line,
+
+b.operation,
+
+b.measure_name,
+
+b.空间统计维度,b.时间统计维度,
+
+b.天或7天,
+
+a.lower_line,
+
+a.upper_line 
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_b_A b
+
+left join sample_data_avg_stddev_b_A a
+
+on a.item=b.item and a.line=b.line and a.operation=b.operation and a.measure_name=b.measure_name and a.空间统计维度=b.空间统计维度 and
+
+a.时间统计维度=b.时间统计维度 and a.天或7天=b.天或7天)
+
+select coalesce(actual_num,0) actual_num,coalesce(item,'') item,coalesce(line,'') line,coalesce(operation,'') operation,coalesce(measure_name,'') measure_name,
+
+coalesce(空间统计维度,'') 空间统计维度,coalesce(时间统计维度,'') 时间统计维度,lower_line,
+
+upper_line
+
+from a;
+
+
+delete from temp_sandian_b_A a
+
+where a.actual_num>=a.lower_line and a.actual_num <=a.upper_line;
+
+
+
+drop table if exists temp_sandian_all_b_A;
+
+CREATE temp TABLE temp_sandian_all_b_A with(appendonly=true,compresstype=zstd) as
+
+select distinct a.actual_num,a.item,a.line,a.operation,a.measure_name,a.空间统计维度,a.时间统计维度,--b.lower_line,b.upper_line,
+
+case when b.lower_line is not null and b.upper_line is not null then count(a.actual_num) over(partition by a.item,a.line,a.operation,a.measure_name,
+
+a.空间统计维度,a.时间统计维度) else 0 end as sandian_num
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_b_A a
+
+left join temp_sandian_b_A b on a.actual_num=b.actual_num and a.item=b.item and a.operation=b.operation and a.measure_name=b.measure_name and a.line=b.line
+
+group by a.actual_num,a.item,a.line,a.operation,a.measure_name,a.空间统计维度,a.时间统计维度,b.lower_line,b.upper_line;
+
+
+
+drop table if exists temp_gen_parametric_measure_cell_tsocv_per_day_b_1_A;
+
+CREATE temp TABLE temp_gen_parametric_measure_cell_tsocv_per_day_b_1_A with(appendonly=true,compresstype=zstd) as
+
+select b.*
+
+,a.sandian_num 
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_b_A b 
+
+left join temp_sandian_all_b_A a on a.actual_num=b.actual_num and
+
+a.item=b.item and a.operation=b.operation and a.line=b.line 
+
+and a.measure_name=b.measure_name and a.空间统计维度=b.空间统计维度 and a.时间统计维度=b.时间统计维度;
+
+
+----产品PN+拉线+工序+同工序下参数代码 --第2种
+
+DROP TABLE IF EXISTS temp_gen_parametric_measure_cell_tsocv_per_day_T2_A;
+
+CREATE temp TABLE temp_gen_parametric_measure_cell_tsocv_per_day_T2_A with(appendonly=true,compresstype=zstd) as
+
+select distinct a.*,b.actual_num_outlier
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_b_1_A a 
+
+left join
+
+(
+
+select item,operation,measure_name,test_date_time,line,string_agg(distinct actual_num||'',',') actual_num_outlier
+
+from temp_gen_parametric_measure_cell_1 a 
+
+where exists (select 1 from temp_gen_parametric_measure_cell_tsocv_per_day_b_A b where a.item=b.item and a.test_date_time=b.天或7天
+
+and a.operation=b.operation and a.measure_name=b.measure_name and a.plant=b.plant and a.sfc=b.sfc
+
+and a.site=b.site and a.line=b.line and a.resrce=b.resrce and a.actual_num=b.actual_num
+
+and (a.actual_num>b.actual_num_per_up_edge or a.actual_num<b.actual_num_per_down_edge)
+
+)group by item,operation,measure_name,test_date_time,line
+
+) b on a.item=b.item and a.operation=b.operation and a.measure_name=b.measure_name and a.天或7天=b.test_date_time and a.line=b.line
+
+distributed BY (item,line,天或7天,operation,measure_name);
+
+
+
+DROP TABLE IF EXISTS temp_gen_parametric_measure_cell_tsocv_per_day_c_A;
+
+CREATE temp TABLE temp_gen_parametric_measure_cell_tsocv_per_day_c_A with(appendonly=true,compresstype=zstd) as
+
+with temp as(
+
+select item,
+
+--sfc,site,
+
+--line,
+
+resrce,
+
+operation,measure_name,
+
+--actual_num,
+
+'产品PN+工序+同工序下资源编号+同工序下参数代码' 空间统计维度,'周' 时间统计维度,test_date_time 天或7天,
+
+avg(actual_num) actual_num_mean,
+
+stddev(actual_num) actual_num_sigma,
+
+percentile_disc(0.75) within group(order by actual_num) actual_num_per_up,
+
+percentile_disc(0.25) within group(order by actual_num) actual_num_per_down,
+
+percentile_disc(0.5) within group(order by actual_num) actual_num_per_middle,
+
+percentile_disc(0.75) within group(order by actual_num)-percentile_disc(0.25) within group(order by actual_num) actual_num_iqr,
+
+string_agg(distinct actual_num||'',',') actual_num_group
+
+from temp_gen_parametric_measure_cell_1
+
+group by item,operation,measure_name,resrce,
+
+天或7天-- ,sfc,site,line,resrce,operation,measure_name,actual_num
+
+---order by 天或7天
+
+)
+
+select a.*,b.plant,b.sfc,b.site,b.actual_num,b.line,
+
+case when actual_num_mean=0 then 0 else actual_num_sigma/actual_num_mean end actual_num_cov,
+
+a.actual_num_per_up+a.actual_num_iqr*1.5 actual_num_per_up_edge,
+
+a.actual_num_per_down-a.actual_num_iqr*1.5 actual_num_per_down_edge
+
+from temp a
+
+left join temp_gen_parametric_measure_cell_1 b on a.item=b.item and a.operation=b.operation and a.measure_name=b.measure_name and a.天或7天=b.test_date_time and a.resrce=b.resrce
+
+--group by item,operation,measure_name,天或7天,空间统计维度,时间统计维度
+
+--order by 天或7天
+
+distributed BY (item,天或7天,operation,measure_name,resrce);
+
+
+drop table if exists sample_data_c_A;
+
+create temp table sample_data_c_A(value real,item varchar,resrce varchar,
+
+operation varchar,measure_name varchar,空间统计维度 varchar,时间统计维度 varchar,天或7天 varchar);
+
+insert into sample_data_c_A(value,item,resrce,operation,measure_name,空间统计维度,时间统计维度,天或7天) 
+
+select actual_num,item,resrce,operation,measure_name,空间统计维度,时间统计维度,天或7天
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_c_A;
+
+create or replace function calculate_statistics_c_A()
+
+returns void as
+
+$$
+
+declare
+
+        sample_count integer;
+
+        mean real;
+
+        variance real;
+
+        stddev real;
+
+        lower_bound real;
+
+        upper_bound real;
+
+        outliers integer;
+
+        threshold real:=5;
+
+begin
+
+        while true loop
+
+                select count(value),avg(value) avg_value,var_pop(value) variance into sample_count,mean,variance from sample_data_c_A;
+
+                stddev :=sqrt(variance);
+
+                lower_bound :=mean - threshold * stddev;
+
+                upper_bound :=mean + threshold * stddev;
+
+                select count(value) into outliers from sample_data_c_A where value <lower_bound or value> upper_bound;
+
+                delete from sample_data_c_A where value <lower_bound or value > upper_bound;
+
+                if outliers = 0 then
+
+                        EXIT;
+
+                end if;
+
+                --threshold :=5;
+
+        end loop;
+
+end;
+
+$$ LANGUAGE plpgsql;
+
+
+select calculate_statistics_c_A(); --select * from sample_data_b
+
+
+drop table if exists sample_data_avg_stddev_c_A;
+
+CREATE temp TABLE sample_data_avg_stddev_c_A with(appendonly=true,compresstype=zstd) as
+
+with a as(select item,resrce,operation,measure_name,空间统计维度,时间统计维度,天或7天,
+
+avg(b.value) avg_value,
+
+stddev(b.value) stddev_value 
+
+from sample_data_c_A b group by item,resrce,operation,measure_name,空间统计维度,时间统计维度,天或7天
+
+)select item,resrce,operation,measure_name,空间统计维度,时间统计维度,天或7天,
+
+avg_value-4*stddev_value lower_line,avg_value+4*stddev_value upper_line from a
+
+group by item,resrce,operation,measure_name,空间统计维度,时间统计维度,天或7天,avg_value,stddev_value;  
+
+
+
+drop table if exists temp_sandian_c_A;
+
+CREATE temp TABLE temp_sandian_c_A with(appendonly=true,compresstype=zstd) as
+
+with a as(select b.actual_num,
+
+b.item,
+
+b.resrce,
+
+b.operation,
+
+b.measure_name,
+
+b.空间统计维度,b.时间统计维度,
+
+b.天或7天,
+
+a.lower_line,
+
+a.upper_line 
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_c_A b
+
+left join sample_data_avg_stddev_c_A a
+
+on a.item=b.item and a.resrce=b.resrce and a.operation=b.operation and a.measure_name=b.measure_name and a.空间统计维度=b.空间统计维度 and
+
+a.时间统计维度=b.时间统计维度 and a.天或7天=b.天或7天)
+
+select coalesce(actual_num,0) actual_num,coalesce(item,'') item,coalesce(resrce,'') resrce,coalesce(operation,'') operation,coalesce(measure_name,'') measure_name,
+
+coalesce(空间统计维度,'') 空间统计维度,coalesce(时间统计维度,'') 时间统计维度,lower_line,
+
+upper_line
+
+from a;
+
+
+delete from temp_sandian_c_A a
+
+where a.actual_num>=a.lower_line and a.actual_num <=a.upper_line;
+
+
+
+drop table if exists temp_sandian_all_c_A;
+
+CREATE temp TABLE temp_sandian_all_c_A with(appendonly=true,compresstype=zstd) as
+
+select distinct a.actual_num,a.item,a.resrce,a.operation,a.measure_name,a.空间统计维度,a.时间统计维度,--b.lower_line,b.upper_line,
+
+case when b.lower_line is not null and b.upper_line is not null then count(a.actual_num) over(partition by a.actual_num,a.item,a.resrce,a.operation,a.measure_name,
+
+a.空间统计维度,a.时间统计维度) else 0 end as sandian_num
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_c_A a
+
+left join temp_sandian_c_A b on a.actual_num=b.actual_num and a.item=b.item and a.operation=b.operation and a.measure_name=b.measure_name and a.resrce=b.resrce
+
+group by a.actual_num,a.item,a.resrce,a.operation,a.measure_name,a.空间统计维度,a.时间统计维度,b.lower_line,b.upper_line;
+
+
+
+drop table if exists temp_gen_parametric_measure_cell_tsocv_per_day_c_1_A;
+
+CREATE temp TABLE temp_gen_parametric_measure_cell_tsocv_per_day_c_1_A with(appendonly=true,compresstype=zstd) as
+
+select b.*
+
+,a.sandian_num 
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_c_A b 
+
+left join temp_sandian_all_c_A a on a.actual_num=b.actual_num and
+
+a.item=b.item and a.operation=b.operation and a.resrce=b.resrce 
+
+and a.measure_name=b.measure_name and a.空间统计维度=b.空间统计维度 and a.时间统计维度=b.时间统计维度;
+
+
+----产品PN+工序+同工序下资源编号+同工序下参数代码--第三种
+
+DROP TABLE IF EXISTS temp_gen_parametric_measure_cell_tsocv_per_day_T3_A;
+
+CREATE temp TABLE temp_gen_parametric_measure_cell_tsocv_per_day_T3_A with(appendonly=true,compresstype=zstd) as
+
+select distinct a.*,b.actual_num_outlier
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_c_1_A a 
+
+left join
+
+(
+
+select item,operation,measure_name,test_date_time,resrce,string_agg(distinct actual_num||'',',') actual_num_outlier
+
+from temp_gen_parametric_measure_cell_1 a 
+
+where exists (select 1 from temp_gen_parametric_measure_cell_tsocv_per_day_c_1_A b where a.item=b.item and a.test_date_time=b.天或7天
+
+and a.operation=b.operation and a.measure_name=b.measure_name and a.plant=b.plant and a.sfc=b.sfc
+
+and a.site=b.site and a.item=b.item and a.resrce=b.resrce and a.actual_num=b.actual_num
+
+and (a.actual_num>b.actual_num_per_up_edge or a.actual_num<b.actual_num_per_down_edge)
+
+)
+
+group by item,operation,measure_name,test_date_time,resrce
+
+) b on a.item=b.item and a.operation=b.operation and a.measure_name=b.measure_name and a.天或7天=b.test_date_time and a.resrce=b.resrce
+
+distributed BY (item,天或7天,operation,measure_name,resrce);
+
+
+
+DROP TABLE IF EXISTS temp_gen_parametric_measure_cell_tsocv_per_day_d_A;
+
+CREATE temp TABLE temp_gen_parametric_measure_cell_tsocv_per_day_d_A with(appendonly=true,compresstype=zstd) as
+
+with temp as (
+
+select
+
+a.item,
+
+a.resrce,
+
+--operation,measure_name,
+
+'产品PN+工序+非同工序下资源编号+同工序下参数代码' 空间统计维度,'周' 时间统计维度,test_date_time 天或7天,
+
+avg(a.actual_num) actual_num_mean,
+
+stddev(a.actual_num) actual_num_sigma,
+
+percentile_disc(0.75) within group(order by a.actual_num) actual_num_per_up,
+
+percentile_disc(0.25) within group(order by a.actual_num) actual_num_per_down,
+
+percentile_disc(0.5) within group(order by a.actual_num) actual_num_per_middle,
+
+percentile_disc(0.75) within group(order by a.actual_num)-percentile_disc(0.25) within group(order by a.actual_num) actual_num_iqr,
+
+string_agg(distinct a.actual_num||'',',') actual_num_group
+
+from temp_gen_parametric_measure_cell_1 a
+
+where sfc in(
+
+select sfc
+
+from temp_gen_parametric_measure_cell_1
+
+where actual_num in(
+
+select --operation,measure_name,
+
+actual_num
+
+from temp_gen_parametric_measure_cell_1
+
+where operation='TSOCV1' and
+
+measure_name='IMP'
+
+)
+
+)
+
+and operation='USWELD'
+
+group by item,test_date_time,resrce
+
+)
+
+select a.*,b.plant,b.sfc,b.site,b.line,b.actual_num,b.operation,b.measure_name,
+
+case when actual_num_mean=0 then 0 else actual_num_sigma/actual_num_mean end actual_num_cov,
+
+a.actual_num_per_up+a.actual_num_iqr*1.5 actual_num_per_up_edge,
+
+a.actual_num_per_down-a.actual_num_iqr*1.5 actual_num_per_down_edge
+
+from temp a
+
+left join temp_gen_parametric_measure_cell_1 b on a.item=b.item  and a.天或7天=b.test_date_time and a.resrce=b.resrce
+
+--group by item,operation,measure_name,天或7天,空间统计维度,时间统计维度
+
+--order by 天或7天
+
+distributed BY (item,天或7天,resrce);
+
+
+drop table if exists sample_data_d_A;
+
+create temp table sample_data_d_A(value real,item varchar,resrce varchar,
+
+operation varchar,measure_name varchar,空间统计维度 varchar,时间统计维度 varchar,天或7天 varchar);
+
+insert into sample_data_d_A(value,item,resrce,operation,measure_name,空间统计维度,时间统计维度,天或7天) 
+
+select actual_num,item,resrce,operation,measure_name,空间统计维度,时间统计维度,天或7天
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_d_A;
+
+create or replace function calculate_statistics_d_A()
+
+returns void as
+
+$$
+
+declare
+
+        sample_count integer;
+
+        mean real;
+
+        variance real;
+
+        stddev real;
+
+        lower_bound real;
+
+        upper_bound real;
+
+        outliers integer;
+
+        threshold real:=5;
+
+begin
+
+        while true loop
+
+                select count(value),avg(value) avg_value,var_pop(value) variance into sample_count,mean,variance from sample_data_d_A;
+
+                stddev :=sqrt(variance);
+
+                lower_bound :=mean - threshold * stddev;
+
+                upper_bound :=mean + threshold * stddev;
+
+                select count(value) into outliers from sample_data_d_A where value <lower_bound or value> upper_bound;
+
+                delete from sample_data_d_A where value <lower_bound or value > upper_bound;
+
+                if outliers = 0 then
+
+                        EXIT;
+
+                end if;
+
+                --threshold :=5;
+
+        end loop;
+
+end;
+
+$$ LANGUAGE plpgsql;
+
+
+select calculate_statistics_d_A(); --select * from sample_data_d
+
+
+drop table if exists sample_data_avg_stddev_d_A;
+
+CREATE temp TABLE sample_data_avg_stddev_d_A with(appendonly=true,compresstype=zstd) as
+
+with a as(select item,resrce,operation,measure_name,空间统计维度,时间统计维度,天或7天,
+
+avg(b.value) avg_value,
+
+stddev(b.value) stddev_value 
+
+from sample_data_d_A b group by item,resrce,operation,measure_name,空间统计维度,时间统计维度,天或7天
+
+)select item,resrce,operation,measure_name,空间统计维度,时间统计维度,天或7天,
+
+avg_value-4*stddev_value lower_line,avg_value+4*stddev_value upper_line from a
+
+group by item,resrce,operation,measure_name,空间统计维度,时间统计维度,天或7天,avg_value,stddev_value;  
+
+
+
+drop table if exists temp_sandian_d_A;
+
+CREATE temp TABLE temp_sandian_d_A with(appendonly=true,compresstype=zstd) as
+
+with a as(select b.actual_num,
+
+b.item,
+
+b.resrce,
+
+b.operation,
+
+b.measure_name,
+
+b.空间统计维度,b.时间统计维度,
+
+b.天或7天,
+
+a.lower_line,
+
+a.upper_line 
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_d_A b
+
+left join sample_data_avg_stddev_d_A a
+
+on a.item=b.item and a.resrce=b.resrce and a.operation=b.operation and a.measure_name=b.measure_name and a.空间统计维度=b.空间统计维度 and
+
+a.时间统计维度=b.时间统计维度 and a.天或7天=b.天或7天)
+
+select coalesce(actual_num,0) actual_num,coalesce(item,'') item,coalesce(resrce,'') resrce,coalesce(operation,'') operation,coalesce(measure_name,'') measure_name,
+
+coalesce(空间统计维度,'') 空间统计维度,coalesce(时间统计维度,'') 时间统计维度,lower_line,
+
+upper_line
+
+from a;
+
+
+delete from temp_sandian_d_A a
+
+where a.actual_num>=a.lower_line and a.actual_num <=a.upper_line; --select * from temp_sandian_d --select * from temp_sandian_c --select * from temp_sandian_a --select * from temp_sandian_b
+
+
+
+drop table if exists temp_sandian_all_d_A;
+
+CREATE temp TABLE temp_sandian_all_d_A with(appendonly=true,compresstype=zstd) as
+
+select distinct a.actual_num,a.item,a.resrce,a.operation,a.measure_name,a.空间统计维度,a.时间统计维度,--b.lower_line,b.upper_line,
+
+case when b.lower_line is not null and b.upper_line is not null then count(a.actual_num) over(partition by a.actual_num,a.item,a.resrce,a.operation,a.measure_name,
+
+a.空间统计维度,a.时间统计维度) else 0 end as sandian_num
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_d_A a
+
+left join temp_sandian_d_A b on a.actual_num=b.actual_num and a.item=b.item and a.operation=b.operation and a.measure_name=b.measure_name and a.resrce=b.resrce
+
+group by a.actual_num,a.item,a.resrce,a.operation,a.measure_name,a.空间统计维度,a.时间统计维度,b.lower_line,b.upper_line;
+
+
+
+drop table if exists temp_gen_parametric_measure_cell_tsocv_per_day_d_1_A;
+
+CREATE temp TABLE temp_gen_parametric_measure_cell_tsocv_per_day_d_1_A with(appendonly=true,compresstype=zstd) as
+
+select b.*
+
+,a.sandian_num 
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_d_A b 
+
+left join temp_sandian_all_d_A a on a.actual_num=b.actual_num and
+
+a.item=b.item and a.operation=b.operation and a.resrce=b.resrce 
+
+and a.measure_name=b.measure_name and a.空间统计维度=b.空间统计维度 and a.时间统计维度=b.时间统计维度;
+
+
+----产品PN+工序+非同工序下资源编号+同工序下参数代码--第四种
+
+DROP TABLE IF EXISTS temp_gen_parametric_measure_cell_tsocv_per_day_T4_A;
+
+CREATE TEMP TABLE temp_gen_parametric_measure_cell_tsocv_per_day_T4_A with(appendonly=true,compresstype=zstd) as
+
+select distinct a.*,b.actual_num_outlier
+
+from temp_gen_parametric_measure_cell_tsocv_per_day_d_1_A a 
+
+left join
+
+(
+
+select item,operation,measure_name,test_date_time,resrce,string_agg(distinct actual_num||'',',') actual_num_outlier
+
+from temp_gen_parametric_measure_cell_1 a 
+
+where exists (select 1 from temp_gen_parametric_measure_cell_tsocv_per_day_d_1_A b where a.item=b.item and a.test_date_time=b.天或7天
+
+and a.operation=b.operation and a.measure_name=b.measure_name and a.plant=b.plant and a.sfc=b.sfc
+
+and a.site=b.site and a.item=b.item and a.resrce=b.resrce and a.actual_num=b.actual_num
+
+and (a.actual_num>b.actual_num_per_up_edge or a.actual_num<b.actual_num_per_down_edge)
+
+)
+
+group by item,operation,measure_name,test_date_time,resrce
+
+) b on a.item=b.item and a.operation=b.operation and a.measure_name=b.measure_name and a.天或7天=b.test_date_time and a.resrce=b.resrce
+
+distributed BY (item,天或7天,resrce);
+
+
+DROP TABLE IF EXISTS temp_gen_parametric_measure_cell_tsocv_per_week_ALL;
+
+CREATE TEMP TABLE temp_gen_parametric_measure_cell_tsocv_per_week_ALL with(appendonly=true,compresstype=zstd) as
+
+select item,site,plant,line,operation,resrce,measure_name,空间统计维度,时间统计维度,actual_num_mean,actual_num_sigma,actual_num_cov,
+
+sandian_num,actual_num_iqr,actual_num_per_up_edge,actual_num_per_down_edge,actual_num_per_up,actual_num_per_down,actual_num_per_middle,actual_num_outlier
+
+sfc from temp_gen_parametric_measure_cell_tsocv_per_day_T1_A
+
+union all
+
+select item,site,plant,line,operation,resrce,measure_name,空间统计维度,时间统计维度,actual_num_mean,actual_num_sigma,actual_num_cov,
+
+sandian_num,actual_num_iqr,actual_num_per_up_edge,actual_num_per_down_edge,actual_num_per_up,actual_num_per_down,actual_num_per_middle,actual_num_outlier
+
+sfc  from temp_gen_parametric_measure_cell_tsocv_per_day_T2_A
+
+union all 
+
+select item,site,plant,line,operation,resrce,measure_name,空间统计维度,时间统计维度,actual_num_mean,actual_num_sigma,actual_num_cov,
+
+sandian_num,actual_num_iqr,actual_num_per_up_edge,actual_num_per_down_edge,actual_num_per_up,actual_num_per_down,actual_num_per_middle,actual_num_outlier
+
+sfc from temp_gen_parametric_measure_cell_tsocv_per_day_T3_A
+
+union all
+
+select item,site,plant,line,operation,resrce,measure_name,空间统计维度,时间统计维度,actual_num_mean,actual_num_sigma,actual_num_cov,
+
+sandian_num,actual_num_iqr,actual_num_per_up_edge,actual_num_per_down_edge,actual_num_per_up,actual_num_per_down,actual_num_per_middle,actual_num_outlier
+
+sfc from temp_gen_parametric_measure_cell_tsocv_per_day_T4_A;
+
+
+
+select * from temp_gen_parametric_measure_cell_tsocv_per_week_ALL
+
+union all
+
+select * from temp_gen_parametric_measure_cell_tsocv_per_day_ALL
+
+
+-------计算递归---
+
+--DROP TABLE IF EXISTS temp_gen_retroactive_tracing;
+
+--CREATE  TABLE temp_gen_retroactive_tracing with(appendonly=true,compresstype=zstd) as
+
+--select SFC,sfc_final_item_type,data_attr,data_attr_final_item_type
+
+--from gen.gen_retroactive_tracing
+
+--where removed='false' and assembled_date>='2022-11-07 10:00' and assembled_date<='2022-11-07 10:30'
+
+--distributed by (SFC,sfc_final_item_type,data_attr,data_attr_final_item_type);
+
+----and sfc=''
+
+----select * from gen.gen_retroactive_tracing where assembled_date>='2022-11-01 0:00' and assembled_date<='2022-11-01 0:30'
+
+----select * from gen.gen_parametric_measure_other_all where test_date_time>='2022-11-01 0:00' and test_date_time<='2022-11-01 0:30'
+
+--
+
+--DROP TABLE IF EXISTS temp_subordinates;
+
+--CREATE  TABLE temp_subordinates with(appendonly=true,compresstype=zstd) as
+
+--WITH RECURSIVE subordinates AS (
+
+--SELECT  sfc,sfc_final_item_type,data_attr,data_attr_final_item_type,sfc root_sfc,
+
+--cast(sfc as varchar(100)) all_objid,1 depths,cast(sfc||'>'||data_attr as varchar(100)) sd
+
+--FROM temp_gen_retroactive_tracing where sfc_final_item_type='ELECTRIC'
+
+--UNION
+
+--SELECT t1.sfc,t1.sfc_final_item_type,t1.data_attr,t1.data_attr_final_item_type,
+
+--org.root_sfc root_sfc,cast(org.all_objid||'>'||t1.sfc as varchar(100)) all_objid,org.depths+1 depths,cast(org.sfc||'>'||t1.sfc as varchar(100)) sd
+
+--FROM temp_gen_retroactive_tracing t1, subordinates org
+
+--WHERE t1.sfc= org.data_attr AND t1.sfc != org.sfc
+
+--)select sfc,sfc_final_item_type,data_attr,data_attr_final_item_type,sfc root_sfc,all_objid,depths,sd from subordinates
+
+
+￼
