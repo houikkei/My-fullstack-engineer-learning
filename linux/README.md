@@ -167,6 +167,7 @@
 
 使用命令行参数：
 Bash 脚本可以接收命令行参数。参数 $1、$2 等表示传递给脚本的参数。
+  ```bash
 #!/bin/bash
 echo "First argument: $1"
 echo "Second argument: $2"
@@ -182,14 +183,13 @@ $?：上一条命令的退出状态码
 Bash 支持多种条件判断结构，用于根据特定条件执行不同的操作。
 
 if 语句：
-'''bash
+  ```bash
 #!/bin/bash
 if [ $1 -gt 100 ]; then
     echo "The number is greater than 100"
 else
     echo "The number is 100 or less"
 fi
-'''
 
 
 -gt：大于（greater than）
@@ -197,11 +197,10 @@ fi
 -eq：等于（equal）
 文件判断：
 
-'''bash
+  ```bash
 if [ -f /path/to/file ]; then
     echo "File exists"
 fi
-'''
 
 -f：检查文件是否存在
 -d：检查目录是否存在
@@ -217,50 +216,47 @@ fi
 Bash 支持多种循环结构来重复执行命令。
 
 for 循环：
-'''bash
+  ```bash
 #!/bin/bash
 for i in 1 2 3 4 5; do
     echo "Number: $i"
 done
-'''
 
 while 循环：
-'''bash
+  ```bash
 #!/bin/bash
 count=1
 while [ $count -le 5 ]; do
     echo "Count: $count"
     count=$((count + 1))
 done
-'''
 
 until 循环：
 until 循环会一直执行，直到条件为真。
 
-'''bash
+  ```bash
 #!/bin/bash
 count=1
 until [ $count -gt 5 ]; do
     echo "Count: $count"
     count=$((count + 1))
 done
-'''
+
 
 ### 5. 函数
 Bash 支持定义和调用函数，便于复用代码。
 
-'''bash
+  ```bash
 #!/bin/bash
 myfunc() {
     echo "This is a function"
 }
-'''
 
 
 myfunc  # 调用函数
 
 带参数的函数：
-'''bash
+  ```bash
 #!/bin/bash
 myfunc() {
     echo "First argument: $1"
@@ -268,7 +264,6 @@ myfunc() {
 }
 
 myfunc "Hello" "World"
-'''
 
 
 
@@ -276,18 +271,18 @@ myfunc "Hello" "World"
 exit 命令：
 exit 用于退出脚本并返回状态码。
 
-'''bash
+  ```bash
 #!/bin/bash
 echo "Exiting script"
 exit 0  # 返回状态码 0 表示成功
 
-'''
+
 
 break 和 continue：
 break 用于退出循环。
 continue 用于跳过当前循环的剩余部分并进入下一次循环。
 
-'''bash
+  ```bash
 #!/bin/bash
 for i in 1 2 3 4 5; do
     if [ $i -eq 3 ]; then
@@ -295,7 +290,7 @@ for i in 1 2 3 4 5; do
     fi
     echo "Number: $i"
 done
-'''
+
 
 ### 7. I/O 重定向
 Bash 支持将命令的输出重定向到文件，或从文件读取输入。
@@ -306,12 +301,11 @@ echo "Another line" >> output.txt  # 追加写入文件
 
 
 输入重定向：
-'''bash
+  ```bash
 #!/bin/bash
 while read line; do
     echo $line
 done < input.txt
-'''
 
 管道（|）：
 管道将一个命令的输出作为另一个命令的输入。
@@ -321,13 +315,12 @@ cat file.txt | grep "pattern"
 ### 8. 错误处理
 通过检查命令的返回值，Bash 可以进行简单的错误处理。
 
-'''bash
+  ```bash
 #!/bin/bash
 command_that_might_fail
 if [ $? -ne 0 ]; then
     echo "Command failed"
 fi
-'''
 
 
 或者使用 set 命令：
@@ -347,9 +340,8 @@ crontab -e
 
 ### 10. Bash 调试
 可以通过 -x 选项来调试 Bash 脚本，显示每条命令及其参数。
-'''bash
+  ```bash
 #!/bin/bash
 set -x  # 启用调试
 echo "This is a debug example"
 set +x  # 禁用调试
-'''。  转为markdown文本格式,其中代码块要能够在markdown中显示
