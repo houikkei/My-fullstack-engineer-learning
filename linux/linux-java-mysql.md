@@ -8,8 +8,20 @@
 
 ```bash
 java -version
-'''
+  ```
 
+如果系统中已有 Java 安装，它会显示已安装的 Java 版本。如果未安装，终端会提示未找到该命令。
+
+## 2. 安装 JDK
+2.1 安装 OpenJDK
+OpenJDK 是一个开源的 Java 实现，Linux 发行版通常包含 OpenJDK，可以直接通过包管理器安装。
+
+Debian/Ubuntu 系统：
+```bash
+sudo apt update
+sudo apt install openjdk-11-jdk
+
+  ```
 
 
 
