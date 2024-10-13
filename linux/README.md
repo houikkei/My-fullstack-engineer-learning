@@ -168,9 +168,9 @@
 使用命令行参数：
 Bash 脚本可以接收命令行参数。参数 $1、$2 等表示传递给脚本的参数。
   ```bash
-#!/bin/bash
-echo "First argument: $1"
-echo "Second argument: $2"
+  #!/bin/bash
+  echo "First argument: $1"
+  echo "Second argument: $2"
 
 
 特殊变量：
