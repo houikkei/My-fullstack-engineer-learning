@@ -201,7 +201,7 @@ fi
 if [ -f /path/to/file ]; then
     echo "File exists"
 fi
-
+  ```
 -f：检查文件是否存在
 -d：检查目录是否存在
 
@@ -221,6 +221,7 @@ for 循环：
 for i in 1 2 3 4 5; do
     echo "Number: $i"
 done
+  ```
 
 while 循环：
   ```bash
@@ -230,6 +231,7 @@ while [ $count -le 5 ]; do
     echo "Count: $count"
     count=$((count + 1))
 done
+  ```
 
 until 循环：
 until 循环会一直执行，直到条件为真。
@@ -241,7 +243,7 @@ until [ $count -gt 5 ]; do
     echo "Count: $count"
     count=$((count + 1))
 done
-
+  ```
 
 ### 5. 函数
 Bash 支持定义和调用函数，便于复用代码。
@@ -252,9 +254,9 @@ myfunc() {
     echo "This is a function"
 }
 
-
 myfunc  # 调用函数
 
+  ```
 带参数的函数：
   ```bash
 #!/bin/bash
@@ -264,7 +266,7 @@ myfunc() {
 }
 
 myfunc "Hello" "World"
-
+  ```
 
 
 ### 6. 脚本控制
@@ -275,7 +277,7 @@ exit 用于退出脚本并返回状态码。
 #!/bin/bash
 echo "Exiting script"
 exit 0  # 返回状态码 0 表示成功
-
+  ```
 
 
 break 和 continue：
@@ -290,7 +292,7 @@ for i in 1 2 3 4 5; do
     fi
     echo "Number: $i"
 done
-
+  ```
 
 ### 7. I/O 重定向
 Bash 支持将命令的输出重定向到文件，或从文件读取输入。
@@ -306,7 +308,7 @@ echo "Another line" >> output.txt  # 追加写入文件
 while read line; do
     echo $line
 done < input.txt
-
+  ```
 管道（|）：
 管道将一个命令的输出作为另一个命令的输入。
 cat file.txt | grep "pattern"
@@ -321,7 +323,7 @@ command_that_might_fail
 if [ $? -ne 0 ]; then
     echo "Command failed"
 fi
-
+  ```
 
 或者使用 set 命令：
 set -e  # 如果任何命令失败，立即退出脚本
@@ -345,3 +347,4 @@ crontab -e
 set -x  # 启用调试
 echo "This is a debug example"
 set +x  # 禁用调试
+  ```
