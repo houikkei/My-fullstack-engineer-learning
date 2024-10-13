@@ -190,7 +190,7 @@ if [ $1 -gt 100 ]; then
 else
     echo "The number is 100 or less"
 fi
-
+  ```
 
 -gt：大于（greater than）
 -lt：小于（less than）
