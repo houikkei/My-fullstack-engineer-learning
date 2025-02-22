@@ -1,0 +1,131 @@
+/* 书写自己的首页样式 */
+
+body {
+  background-color: #f3f5f7;
+}
+
+/* 定义一个版心 */
+.wrapper {
+  width: 1200px;
+  margin: 0 auto;
+}
+
+/* header盒子制作开始啦 */
+.header {
+  height: 100px;
+  background-color: #fff;
+}
+
+.logo {
+  width: 195px;
+  height: 41px;
+  /* background-color: purple; */
+}
+
+.logo a {
+  /* 转换块 */
+  display: block;
+  height: 41px;
+  background: url(../images/logo.png);
+  /* 隐藏文字 */
+  font-size: 0;
+}
+
+/* 一定要加header 不会影响别的 */
+.header .wrapper {
+  padding-top: 29px;
+  display: flex;
+}
+
+/* nav导航 */
+.nav {
+  margin-left: 100px;
+}
+
+.nav ul {
+  display: flex;
+}
+
+.nav li {
+  margin-right: 20px;
+}
+
+.nav li a {
+  font-size: 19px;
+  padding: 8px;
+  line-height: 34px;
+
+}
+
+.nav li a:hover {
+  border-bottom: 2px solid #00a4ff;
+}
+
+/* 搜索 */
+.search {
+  width: 412px;
+  height: 40px;
+  background-color: #f3f5f7;
+  border-radius: 20px;
+  margin-left: 80px;
+}
+
+.search input {
+  width: 412px;
+  height: 40px;
+  /* 背景色透明 */
+  background-color: transparent;
+  /* 自带边框为0不显示 */
+  border: 0;
+  padding-left: 20px;
+  padding-right: 30px;
+  /* 去掉点击之后显示的黑色边框 */
+  outline: 0;
+}
+
+/* 用户模块 */
+.user {
+  margin-left: 32px;
+}
+
+.user img {
+  /* 让文字和图片垂直居中对齐 */
+  vertical-align: middle;
+}
+
+.user span {
+  color: #666666;
+}
+
+/* header盒子制作结束啦 */
+
+/* banner开始 */
+.banner {
+  height: 420px;
+  background-color: #0092cb;
+}
+
+.banner .wrapper {
+  height: 420px;
+  background: url(../uploads/banner.png);
+}
+
+.banner .wrapper {
+  display: flex;
+  /* 主轴两侧对齐 */
+  justify-content: space-between;
+  /* 侧轴居中 */
+  align-items: center;
+}
+
+.banner .left {
+  width: 191px;
+  height: 420px;
+  background-color: rgba(0, 0, 0, 0.42);
+}
+
+.banner .right {
+  width: 218px;
+  height: 305px;
+  background-color: pink;
+}

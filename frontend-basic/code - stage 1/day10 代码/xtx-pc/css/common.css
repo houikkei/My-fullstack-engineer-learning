@@ -1,0 +1,162 @@
+/* 公共的样式  页面头部和底部 */
+/* 版心 */
+.wrapper {
+  width: 1240px;
+  margin: 0 auto;
+}
+
+/* 声明颜色变量 */
+:root {
+  /* 灰色变量 */
+  --hui: #a1a1a1;
+  /* 绿色 */
+  --lv: #00BE9A;
+}
+
+/* 头部开始 */
+
+/* 快捷导航 */
+.shortcut {
+  height: 52px;
+  background-color: #333;
+}
+
+.shortcut .wrapper {
+  line-height: 52px;
+  /* background-color: pink; */
+  display: flex;
+  /* 让这个盒子里面的ul 走到右侧 */
+  justify-content: flex-end;
+}
+
+.shortcut .wrapper ul {
+  display: flex;
+}
+
+.shortcut li a {
+  font-size: 14px;
+  color: #fff;
+  padding: 0 15px;
+  border-right: 1px solid #999;
+}
+
+.shortcut li a:hover {
+  /* 变量绿色 */
+  color: var(--lv);
+}
+
+.shortcut li a i {
+  /* 转换为行内块 */
+  display: inline-block;
+  font-size: 19px;
+  /* 让小图标和文字垂直居中 */
+  vertical-align: middle;
+  margin-top: -3px;
+}
+
+.shortcut li:last-child a {
+  border-right: 0;
+}
+
+/* header 模块 */
+.header {
+  padding: 22px 0;
+  display: flex;
+}
+
+.header .logo {
+  width: 200px;
+  height: 88px;
+  background: pink;
+}
+
+.header .logo a {
+  display: block;
+  height: 88px;
+  background: url(../images/logo.png);
+  /* 1. 隐藏文字 */
+  /* font-size: 0; */
+  /* 2. 隐藏文字 淘宝  小米方法 */
+  text-indent: -9999em;
+  overflow: hidden;
+}
+
+/* nav */
+.header .nav ul {
+  display: flex;
+  /* background-color: pink; */
+  margin: 25px 0 0 41px;
+}
+
+.header .nav li a {
+  display: block;
+  line-height: 42px;
+  margin-right: 42px;
+}
+
+.header .nav li a:hover {
+  color: var(--lv);
+  border-bottom: 2px solid var(--lv);
+}
+
+/* search  */
+.search {
+  position: relative;
+  width: 220px;
+  height: 40px;
+  /* background-color: pink; */
+  margin-top: 22px;
+}
+
+.search i {
+  position: absolute;
+  left: 0;
+  top: 5px;
+  font-size: 20px;
+  color: #ccc;
+  /* 鼠标变成小手 */
+  cursor: pointer;
+}
+
+.search input {
+  width: 170px;
+  height: 40px;
+  padding-left: 28px;
+  border-bottom: 2px solid #F4F4F4;
+  transition: all .3s;
+}
+
+/* 修改 placeholder 里面的文字样式 */
+.search input::placeholder {
+  color: #ccc;
+}
+
+/* input获得光标 */
+.search input:focus {
+  width: 220px;
+}
+
+/* car  */
+.car {
+  position: relative;
+  margin: 20px 0 0 15px;
+}
+
+.car i {
+  font-size: 36px;
+}
+
+.car span {
+  position: absolute;
+  top: 0;
+  left: 22px;
+  padding: 0 8px;
+  background-color: #E26237;
+  color: #fff;
+  border-radius: 11px;
+}
+
+.footer {
+  height: 582px;
+  background-color: #F5F5F5;
+}

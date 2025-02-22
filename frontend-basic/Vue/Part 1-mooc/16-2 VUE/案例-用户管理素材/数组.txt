@@ -1,7 +1,0 @@
-[
-    { id: 1, name: 'Lux', nickname: '光辉女郎', gender: '女' },
-    { id: 2, name: 'Jax', nickname: '武器大师', gender: '男' },
-    { id: 3, name: 'Ashe', nickname: '寒冰射手', gender: '女' },
-    { id: 4, name: 'VN', nickname: '暗夜猎手', gender: '女' },
-    { id: 5, name: 'Raze', nickname: '符文法师', gender: '男' }
-]

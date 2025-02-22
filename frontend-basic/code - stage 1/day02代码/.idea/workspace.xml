@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="e36f7f51-eea4-477e-892a-416a8f859312" name="Changes" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 8
+}]]></component>
+  <component name="ProjectId" id="2iE8lMrLyfvm9PzPAeghdp54Ho7" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "JavaScript Debug.10-div和span.html.executor": "Run",
+    "JavaScript Debug.13-综合案例1.html.executor": "Run",
+    "JavaScript Debug.14-综合案例-注册.html.executor": "Run",
+    "JavaScript Debug.优秀学生信息表格.html.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "/Users/haruko/Desktop/配套资料-黑马/阶段01：HTML+CSS 网页基础/前端基础第二天/04-代码",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RunManager" selected="JavaScript Debug.优秀学生信息表格.html">
+    <configuration name="10-div和span.html" type="JavascriptDebugType" temporary="true" nameIsGenerated="true" uri="http://localhost:63342/04-代码/10-div和span.html" useBuiltInWebServerPort="true">
+      <method v="2" />
+    </configuration>
+    <configuration name="13-综合案例1.html" type="JavascriptDebugType" temporary="true" nameIsGenerated="true" uri="http://localhost:63342/04-代码/13-综合案例1.html" useBuiltInWebServerPort="true">
+      <method v="2" />
+    </configuration>
+    <configuration name="14-综合案例-注册.html" type="JavascriptDebugType" temporary="true" nameIsGenerated="true" uri="http://localhost:63342/04-代码/14-综合案例-注册.html" useBuiltInWebServerPort="true">
+      <method v="2" />
+    </configuration>
+    <configuration name="优秀学生信息表格.html" type="JavascriptDebugType" temporary="true" nameIsGenerated="true" uri="http://localhost:63342/04-代码/优秀学生信息表格.html" useBuiltInWebServerPort="true">
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JavaScript Debug.优秀学生信息表格.html" />
+        <item itemvalue="JavaScript Debug.14-综合案例-注册.html" />
+        <item itemvalue="JavaScript Debug.13-综合案例1.html" />
+        <item itemvalue="JavaScript Debug.10-div和span.html" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9f38398b9061-39b83d9b5494-intellij.indexing.shared.core-IU-241.17011.79" />
+        <option value="bundled-js-predefined-1d06a55b98c1-0b3e54e931b4-JavaScript-IU-241.17011.79" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="e36f7f51-eea4-477e-892a-416a8f859312" name="Changes" comment="" />
+      <created>1719044526978</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1719044526978</updated>
+      <workItem from="1719044528005" duration="3898000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>

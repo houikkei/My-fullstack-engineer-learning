@@ -1,2 +1,0 @@
-scope singleton与prototype区别
-演示bean生命周期

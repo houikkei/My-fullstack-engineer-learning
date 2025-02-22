@@ -1,0 +1,463 @@
+/* 书写自己的首页样式 */
+
+body {
+  background-color: #f3f5f7;
+}
+
+i {
+  /* 不倾斜 */
+  font-style: normal;
+}
+
+/* 定义一个版心 */
+.wrapper {
+  width: 1200px;
+  margin: 0 auto;
+}
+
+/* 侧边栏 */
+.subnav {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 80px;
+  height: 300px;
+  background-color: pink;
+  margin-left: 620px;
+}
+
+/* header盒子制作开始啦 */
+.header {
+  /* 固定定位 */
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 999;
+  /* 必须加宽度，这样才能通栏 */
+  width: 100%;
+  height: 100px;
+  background-color: #fff;
+  box-shadow: 0 5px 5px rgba(0, 0, 0, .2);
+}
+
+.logo {
+  width: 195px;
+  height: 41px;
+  /* background-color: purple; */
+}
+
+.logo a {
+  /* 转换块 */
+  display: block;
+  height: 41px;
+  background: url(../images/logo.png);
+  /* 隐藏文字 */
+  font-size: 0;
+}
+
+/* 一定要加header 不会影响别的 */
+.header .wrapper {
+  padding-top: 29px;
+  display: flex;
+}
+
+/* nav导航 */
+.nav {
+  margin-left: 100px;
+}
+
+.nav ul {
+  display: flex;
+}
+
+.nav li {
+  margin-right: 20px;
+}
+
+.nav li a {
+  font-size: 19px;
+  padding: 8px;
+  line-height: 34px;
+
+}
+
+.nav li a:hover {
+  border-bottom: 2px solid #00a4ff;
+}
+
+/* 搜索 */
+.search {
+  position: relative;
+  width: 412px;
+  height: 40px;
+  background-color: #f3f5f7;
+  border-radius: 20px;
+  margin-left: 80px;
+}
+
+.search input {
+  width: 412px;
+  height: 40px;
+  /* 背景色透明 */
+  background-color: transparent;
+  /* 自带边框为0不显示 */
+  border: 0;
+  padding-left: 20px;
+  padding-right: 30px;
+  /* 去掉点击之后显示的黑色边框 */
+  outline: 0;
+}
+
+.search .icon-fangdajing {
+  position: absolute;
+  right: 20px;
+  top: 4px;
+  font-size: 22px;
+  color: #00a4ff;
+}
+
+/* 用户模块 */
+.user {
+  margin-left: 32px;
+}
+
+.user img {
+  /* 让文字和图片垂直居中对齐 */
+  vertical-align: middle;
+}
+
+.user span {
+  color: #666666;
+}
+
+/* header盒子制作结束啦 */
+
+/* banner开始 */
+.banner {
+  margin-top: 100px;
+  height: 420px;
+  background-color: #0092cb;
+}
+
+.banner .wrapper {
+  height: 420px;
+  background: url(../uploads/banner.png);
+}
+
+.banner .wrapper {
+  display: flex;
+  /* 主轴两侧对齐 */
+  justify-content: space-between;
+  /* 侧轴居中 */
+  align-items: center;
+}
+
+.banner .left {
+  width: 191px;
+  height: 420px;
+  padding-top: 3px;
+  background-color: rgba(0, 0, 0, 0.42);
+}
+
+.banner .left li a {
+  display: flex;
+  /* 主轴两侧对齐 */
+  justify-content: space-between;
+  height: 46px;
+  padding: 0 20px;
+  line-height: 46px;
+  font-size: 16px;
+  color: #fff;
+  /* 谁做动画给谁加 */
+  transition: all .3s;
+}
+
+.banner .left li a:hover {
+  color: #00a4ff;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding-left: 35px;
+}
+
+
+.banner .right {
+  width: 218px;
+  height: 305px;
+  padding-top: 18px;
+  background-color: #209dd5;
+  border-radius: 15px;
+}
+
+.banner .right h3 {
+  height: 31px;
+  color: #fff;
+  padding-left: 14px;
+  font-size: 15px;
+}
+
+.banner .content {
+  height: 257px;
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.banner .content dl {
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 10px;
+}
+
+.banner .content dt {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.banner .content dd {
+  font-size: 12px;
+  margin: 8px 0;
+  color: #7d7d7d;
+}
+
+.banner .content dd span {
+  color: #00a4ff;
+}
+
+.banner .content a {
+  display: block;
+  height: 32px;
+  background-color: #00a4ff;
+  border-radius: 16px;
+  font-size: 14px;
+  color: #fff;
+  text-align: center;
+  line-height: 32px;
+}
+
+.banner .content a:hover {
+  background-color: #049bec;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, .3);
+}
+
+/* 精品推荐模块 */
+.recommend {
+  position: sticky;
+  z-index: 99;
+  top: 100px;
+  display: flex;
+  justify-content: space-between;
+  height: 60px;
+  background-color: #fff;
+  margin-top: 12px;
+  box-shadow: 0px 1px 2px 0px rgba(211, 211, 211, 0.7);
+  line-height: 60px;
+  padding: 0 20px;
+
+}
+
+
+.recommend h3 {
+  color: #00a4ff;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.recommend ul {
+  display: flex;
+  /* 伸缩比，沾满所有的空间，文字默认左对齐 */
+  flex: 1;
+}
+
+.recommend ul li a {
+  border-right: 1px solid #e0e0e0;
+  padding: 0 24px;
+}
+
+.recommend ul li a:hover {
+  color: #00a4ff;
+}
+
+/* 选择最后一个li 里面的 a  */
+.recommend ul li:last-child a {
+  border-right: 0;
+}
+
+.recommend .mod {
+  color: #00a4ff;
+  font-size: 16px;
+}
+
+/* 课程模块 */
+.hd {
+  display: flex;
+  justify-content: space-between;
+  height: 30px;
+  line-height: 30px;
+  /* background-color: pink; */
+  margin: 30px 0 15px;
+}
+
+.hd h3 {
+  font-size: 21px;
+  font-weight: 400;
+}
+
+.hd .all {
+  font-size: 16px;
+  color: #999;
+}
+
+.bd ul {
+  display: flex;
+  /* 强制换行 */
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.bd li {
+  position: relative;
+  width: 228px;
+  height: 271px;
+  background-color: #fff;
+  margin-bottom: 14px;
+  /* 过渡 */
+  transition: .3s;
+}
+
+.bd li:hover {
+  box-shadow: 0 15px 30px rgba(0, 0, 0, .3);
+  margin-top: -5px;
+}
+
+.bd li a {
+  display: block;
+  height: 100%;
+}
+
+.bd a h4 {
+  /* 必须给高，这样下面的p会对齐 */
+  height: 55px;
+  margin: 20px 20px 0;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.bd a p {
+  margin-left: 20px;
+}
+
+.bd a p span {
+  color: #fa6400;
+}
+
+/* 前端模块 */
+.hd ul {
+  display: flex;
+  margin-top: 3px;
+}
+
+.hd ul li a {
+  font-size: 16px;
+  margin: 0 30px;
+}
+
+.hd .hot {
+  color: #00a4ff;
+}
+
+.bd {
+  display: flex;
+  justify-content: space-between;
+}
+
+.bd .left {
+  width: 228px;
+  height: 386px;
+
+}
+
+.bd .right {
+  width: 957px;
+  height: 386px;
+
+}
+
+.bd .right .top {
+  height: 100px;
+  margin-bottom: 15px;
+}
+
+.bd .line {
+  width: 1200px;
+}
+
+/* 底部盒子 */
+.footer {
+  height: 273px;
+  background-color: #ffffff;
+  margin-top: 45px;
+  padding-top: 60px;
+
+}
+
+.footer .wrapper {
+  display: flex;
+  justify-content: space-between;
+}
+
+.footer .left .f-logo {
+  display: block;
+  width: 195px;
+  height: 41px;
+  background: url(../images/logo.png);
+}
+
+.footer .left p {
+  width: 432px;
+  font-size: 12px;
+  color: #666;
+  line-height: 17px;
+  margin: 24px 0 14px;
+}
+
+.footer .left .app {
+  display: block;
+  width: 120px;
+  height: 36px;
+  border: 1px solid #00a4ff;
+  text-align: center;
+  line-height: 36px;
+  color: #00a4ff;
+  font-size: 16px;
+}
+
+.footer .left .app:hover {
+  background-color: #00a4ff;
+  color: #fff;
+}
+
+.footer .right {
+  display: flex;
+}
+
+.footer .right dl {
+  margin-left: 130px;
+}
+
+.footer .right dt {
+  font-size: 16px;
+  height: 35px;
+}
+
+.footer .right dd {
+  font-size: 14px;
+  height: 24px;
+}
+
+.footer .right dd a {
+  color: #666;
+
+}
+
+.footer .right dd a:hover {
+  color: #00a4ff;
+
+}
