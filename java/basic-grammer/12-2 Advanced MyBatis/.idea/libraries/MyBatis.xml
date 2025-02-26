@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="MyBatis源代码">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/MyBatis源代码/mybatis.zip!/" />
+      <root url="jar://$PROJECT_DIR$/MyBatis源代码/mybatis-annotation.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
